@@ -1,2 +1,1 @@
-# alarm
-ALARM: Active LeArning Rowhammer Mitigations
+# ALARM: Active LeArning Rowhammer Mitigations

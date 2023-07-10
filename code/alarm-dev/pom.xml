@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.alarm</groupId>
+    <artifactId>ALARM</artifactId>
+    <version>1.0</version>
+    <packaging>jar</packaging>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <!-- LearnLib requires Java 8 -->
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+
+        <!-- Version of LearnLib to use -->
+        <learnlib.version>0.16.0</learnlib.version>
+    </properties>
+
+	<build>
+	    <plugins>
+	        <plugin> 
+	            <groupId>org.apache.maven.plugins</groupId>
+	            <artifactId>maven-jar-plugin</artifactId>
+	            <version>3.1.0</version>
+	            <configuration>
+	                <archive>
+	                    <manifest>
+	                        <mainClass>com.alarm.driver.Driver</mainClass>
+	                    </manifest>
+	                </archive>
+	            </configuration>
+	        </plugin>
+            <plugin>
+    			<artifactId>maven-assembly-plugin</artifactId>
+		        <version>3.1.0</version>
+		        <configuration>
+		            <descriptorRefs>
+		                <descriptorRef>jar-with-dependencies</descriptorRef>
+		            </descriptorRefs>
+		        </configuration>
+		    </plugin>
+			<plugin>
+        		<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+        		<version>3.2.4</version>
+        		<executions>
+          			<execution>
+            			<phase>package</phase>
+            			<goals>
+              				<goal>shade</goal>
+            			</goals>
+          			</execution>
+        		</executions>
+      		</plugin>	        
+	    </plugins>
+	</build>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>de.learnlib</groupId>
+                <artifactId>learnlib-parent</artifactId>
+                <version>${learnlib.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>de.learnlib.distribution</groupId>
+            <artifactId>learnlib-distribution</artifactId>
+			<version>0.16.0</version>
+			<type>pom</type>
+        </dependency>
+        <!-- provide an SLF4J implementation -->
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+			<version>1.4.7</version>
+			<scope>runtime</scope>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/commons-cli/commons-cli -->
+		<dependency>
+		    <groupId>commons-cli</groupId>
+		    <artifactId>commons-cli</artifactId>
+		    <version>1.5.0</version>
+		</dependency>
+        <dependency>
+		    <groupId>org.junit.jupiter</groupId>
+		    <artifactId>junit-jupiter-api</artifactId>
+		    <version>5.9.2</version>
+		</dependency>
+		<dependency>
+		    <groupId>org.jfree</groupId>
+		    <artifactId>jfreechart</artifactId>
+		    <version>1.5.4</version>
+		</dependency>
+		<dependency>
+			<groupId>org.yaml</groupId>
+			<artifactId>snakeyaml</artifactId>
+			<version>2.0</version>
+		</dependency>
+	</dependencies>
+
+</project>
+

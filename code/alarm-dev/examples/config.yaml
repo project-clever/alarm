@@ -1,0 +1,5 @@
+learnerConfig:
+  randomSeed: 46346293
+  algorithm: LSTAR
+adapterConfig:
+  size: 0

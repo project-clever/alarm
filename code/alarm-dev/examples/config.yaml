@@ -1,5 +1,20 @@
 learnerConfig:
   randomSeed: 46346293
   algorithm: LSTAR
+  minRow: 0
+  maxRow: 10
+  readCounts:
+    - 1
+    - 5
+    - 10
+  bitFlips:
+    - 1
+    - 10
+    - 100
+  outputAlphabet:
+    - FLIP
+    - NOFLIP
+    - ECC
+    - TRR
 adapterConfig:
   size: 0

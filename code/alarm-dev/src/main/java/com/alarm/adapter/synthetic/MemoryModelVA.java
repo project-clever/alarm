@@ -1,4 +1,4 @@
-package com.alarm.tool;
+package com.alarm.adapter.synthetic;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -7,6 +7,7 @@ import java.util.Random;
 import com.alarm.exceptions.ECCCorrectionException;
 import com.alarm.exceptions.ECCDetectionException;
 import com.alarm.exceptions.TRRException;
+import com.alarm.tool.Learner;
 import com.backblaze.erasure.RS;
 import com.backblaze.erasure.ReedSolomon;
 
@@ -18,7 +19,7 @@ import com.backblaze.erasure.ReedSolomon;
  * @author ########
  */
 
-public class MemoryModelVC {
+public class MemoryModelVA {
 
 	public static final int PLUS = 1;
 	public static final int MINUS = 2;
@@ -122,13 +123,8 @@ public class MemoryModelVC {
 				this.env.resetCounter(loc, 0);
 				this.trr.resetCounter(loc);
 				read(loc, flip_v);
-				int l = Loc.getValue(loc);
-				if (l % 2 == 0) {
-					if (l + 1 < MEMORY_SIZE) {
-						read(new L(l + 1), flip_v);
-					}
-				} else {
-					read(new L(l - 1), flip_v);
+				for (Loc l : this.mem.neighbours(loc)) {
+					read(l, flip_v);
 				}
 				throw new TRRException();
 			}
@@ -372,9 +368,6 @@ public class MemoryModelVC {
 		}
 
 		public boolean checkSingleCounter(Loc loc) {
-			if (!this.map.containsKey(loc)) {
-				return true;
-			}
 			return this.map.get(loc) < TRR_THRESHOLD;
 		}
 
@@ -385,27 +378,17 @@ public class MemoryModelVC {
 			} else if (this.map.size() < this.counters) {
 				this.map.put(loc, v);
 			} else {
-				int code = calLocCode(loc, 0);
-				Loc outKey = null;
-				boolean swap = false;
+				int min = Integer.MAX_VALUE;
+				Loc minKey = null;
 				for (Loc l : this.map.keySet()) {
-					if (calLocCode(l, this.map.get(l)) > code) {
-						code = calLocCode(l, this.map.get(l));
-						outKey = l;
-						swap = true;
+					if (this.map.get(l) < min) {
+						min = this.map.get(l);
+						minKey = l;
 					}
 				}
-				if (swap) {
-					this.map.remove(outKey);
-					this.map.put(loc, v);
-				}
+				this.map.remove(minKey);
+				this.map.put(loc, v);
 			}
-		}
-
-		private int calLocCode(Loc loc, int n) {
-			int v = Loc.getValue(loc);
-			int m = 16;
-			return (v % m) ^ (n % m);
 		}
 
 		public void resetCounter(Loc loc) {

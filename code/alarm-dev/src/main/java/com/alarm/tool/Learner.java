@@ -13,8 +13,8 @@ import com.alarm.helper.Adj;
 import com.alarm.helper.Path;
 import com.alarm.tool.Adapter.Attack;
 import com.alarm.tool.Adapter.Label;
-import com.alarm.tool.MemoryModel.L;
-import com.alarm.tool.MemoryModel.Loc;
+import com.alarm.adapter.synthetic.MemoryModel.L;
+import com.alarm.adapter.synthetic.MemoryModel.Loc;
 import com.backblaze.erasure.RS;
 
 import de.learnlib.algorithms.lstar.mealy.ExtensibleLStarMealyBuilder;
@@ -60,7 +60,7 @@ import net.automatalib.words.Word;
  * This example shows how a model of a Java class can be learned using learnlib
  *
  * Derived from an example from @author falkhowar
- * 
+ *
  * @author ########
  */
 
@@ -127,9 +127,9 @@ public final class Learner {
 	}
 
 	public static void run(int input_learning_algorithm, int input_eq_oracle, int input_memory_size,
-			int input_trr_counters, int input_max_bits_to_flip, int input_number_of_accesses, int input_trr_threshold,
-			int input_rh_threshold, int input_refresh_interval, boolean input_visualise, int input_max_steps,
-			boolean input_ecc_status) throws NoSuchMethodException, IOException, NoSuchFieldException,
+						   int input_trr_counters, int input_max_bits_to_flip, int input_number_of_accesses, int input_trr_threshold,
+						   int input_rh_threshold, int input_refresh_interval, boolean input_visualise, int input_max_steps,
+						   boolean input_ecc_status) throws NoSuchMethodException, IOException, NoSuchFieldException,
 			SecurityException, IllegalArgumentException, IllegalAccessException {
 
 		LEARNING_ALGORITHM = DEFAULT_LEARNING_ALGORITHM;

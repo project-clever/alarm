@@ -1,4 +1,4 @@
-package com.alarm.tool;
+package com.alarm.adapter.synthetic;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -7,6 +7,7 @@ import java.util.Random;
 import com.alarm.exceptions.ECCCorrectionException;
 import com.alarm.exceptions.ECCDetectionException;
 import com.alarm.exceptions.TRRException;
+import com.alarm.tool.Learner;
 import com.backblaze.erasure.RS;
 import com.backblaze.erasure.ReedSolomon;
 
@@ -18,7 +19,7 @@ import com.backblaze.erasure.ReedSolomon;
  * @author ########
  */
 
-public class MemoryModel {
+public class MemoryModelVB {
 
 	public static final int PLUS = 1;
 	public static final int MINUS = 2;
@@ -42,7 +43,7 @@ public class MemoryModel {
 	public static boolean ECC_STATUS = Learner.ECC_STATUS;
 
 	public static final int FLIP_BITS[] = { 0, 1, 3, 7, 15, 31, 63, 127, 255, 511, 1023 };
-	public static final double FLIP_PROBABILITY = Adapter.FLIP_PROBABILITY;
+	public static final double FLIP_PROBABILITY = 1.0;
 
 	public static final int WORD_SIZE = Learner.WORD_SIZE;
 	public static final int Parity_SIZE = Learner.Parity_SIZE;
@@ -88,14 +89,12 @@ public class MemoryModel {
 		public int read(Loc loc, int flip_v) throws TRRException {
 			clock(loc, flip_v);
 			this.env.resetCounter(loc, 0);
-			this.trr.resetCounter(loc);
 			return this.mem.read(loc);
 		}
 
 		public void write(Loc loc, int v, int flip_v) throws TRRException {
 			clock(loc, flip_v);
 			this.env.resetCounter(loc, 0);
-			this.trr.resetCounter(loc);
 			this.mem.write(loc, v);
 			this.ecc.add(loc, v);
 		}
@@ -116,16 +115,20 @@ public class MemoryModel {
 			this.trr.checkClocks(this.env.clocks);
 			this.env.checkClocks();
 			for (Loc l : this.mem.neighbours(loc)) {
-				if (this.trr.checkSingleCounter(l, this.mem.distance(loc, l))) {
-					int attenuation_factor = BLAST_RADIUS - this.mem.distance(loc, l) + 1;
-					this.env.tickCounter(l, attenuation_factor);
-					this.trr.tickCounter(l, attenuation_factor, this.mem.distance(loc, l));
-				} else {
-					this.env.resetCounter(l, 0);
-					this.trr.resetCounter(l);
+				int attenuation_factor = BLAST_RADIUS - this.mem.distance(loc, l) + 1;
+				this.env.tickCounter(l, attenuation_factor);
+			}
+			this.trr.tickCounter(loc, 1);
+			if (!this.trr.checkSingleCounter(loc)) {
+				this.env.resetCounter(loc, 0);
+				this.trr.resetCounter(loc);
+				read(loc, flip_v);
+				for (Loc l : this.mem.neighbours(loc)) {
 					read(l, flip_v);
-					throw new TRRException();
 				}
+				throw new TRRException();
+			}
+			for (Loc l : this.mem.neighbours(loc)) {
 				Random r = new Random();
 				double pr = r.nextDouble();
 				int tmp = this.env.counter.map.get(l);
@@ -364,28 +367,46 @@ public class MemoryModel {
 			this.map = map;
 		}
 
-		public boolean checkSingleCounter(Loc loc, int distance) {
+		public boolean checkSingleCounter(Loc loc) {
 			if (!this.map.containsKey(loc)) {
-				if (this.map.size() < this.counters && distance <= radius) {
-					this.map.put(loc, 1);
-				} else
-					return true;
+				return true;
 			}
 			return this.map.get(loc) < TRR_THRESHOLD;
 		}
 
-		public void tickCounter(Loc loc, int v, int distance) {
+		public void tickCounter(Loc loc, int v) {
 			if (this.map.containsKey(loc)) {
 				int tmp = this.map.get(loc);
 				this.map.put(loc, tmp + v);
-			} else if (this.map.size() < this.counters && distance <= radius) {
+			} else if (this.map.size() < this.counters) {
 				this.map.put(loc, v);
+			} else {
+				int code = calLocCode(loc, 0);
+				Loc outKey = null;
+				boolean swap = false;
+				for (Loc l : this.map.keySet()) {
+					if (calLocCode(l, this.map.get(l)) > code) {
+						code = calLocCode(l, this.map.get(l));
+						outKey = l;
+						swap = true;
+					}
+				}
+				if (swap) {
+					this.map.remove(outKey);
+					this.map.put(loc, v);
+				}
 			}
+		}
+
+		private int calLocCode(Loc loc, int n) {
+			int v = Loc.getValue(loc);
+			int m = 16;
+			return (v % m) ^ (n % m);
 		}
 
 		public void resetCounter(Loc loc) {
 			if (this.map.containsKey(loc)) {
-				this.map.remove(loc);
+				this.map.put(loc, 0);
 			}
 		}
 

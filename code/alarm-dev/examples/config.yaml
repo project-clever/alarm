@@ -1,5 +1,6 @@
 learnerConfig:
   randomSeed: 46346293
+  eqOracleMaxSteps: 100
   algorithm: LSTAR
   minRow: 0
   maxRow: 10

@@ -6,10 +6,11 @@ import java.util.List;
 import java.util.Arrays;
 
 public class LearnerConfig {
-    public int randomSeed = 46_346_293;
+    public long randomSeed = 46_346_293;
     public double resetProbability = 0.05;
+    public int eqOracleMaxSteps = 100;
     public Algorithms algorithm = Algorithms.LSTAR;
-    public EqOracle eqORacle = EqOracle.RANDOM_WALK;
+    public EqOracle eqOracle = EqOracle.RANDOM_WALK;
     public int minRow = 0;
     public int maxRow = 10;
     public List<Integer> readCounts = new ArrayList<Integer>();

@@ -1,14 +1,26 @@
 package com.alarm.tool;
 
+import de.learnlib.algorithms.adt.learner.ADTLearnerState;
 import de.learnlib.algorithms.lstar.mealy.ExtensibleLStarMealyBuilder;
-import de.learnlib.algorithms.ttt.mealy.TTTLearnerMealy;
 import de.learnlib.algorithms.ttt.mealy.TTTLearnerMealyBuilder;
+import de.learnlib.api.SUL;
 import de.learnlib.api.algorithm.LearningAlgorithm;
 import de.learnlib.api.logging.LearnLogger;
-import de.learnlib.filter.statistic.Counter;
 import de.learnlib.api.oracle.EquivalenceOracle;
 import de.learnlib.api.oracle.MembershipOracle;
 import de.learnlib.api.query.DefaultQuery;
+import de.learnlib.drivers.reflect.MethodInput;
+import de.learnlib.drivers.reflect.MethodOutput;
+import de.learnlib.filter.cache.mealy.MealyCacheOracle;
+import de.learnlib.filter.cache.mealy.MealyCaches;
+import de.learnlib.filter.statistic.Counter;
+import de.learnlib.filter.statistic.oracle.MealyCounterOracle;
+import de.learnlib.filter.statistic.sul.ResetCounterSUL;
+import de.learnlib.oracle.equivalence.MealyRandomWpMethodEQOracle;
+import de.learnlib.oracle.equivalence.MealyWpMethodEQOracle;
+import de.learnlib.oracle.equivalence.mealy.RandomWalkEQOracle;
+import de.learnlib.oracle.membership.SULOracle;
+import de.learnlib.oracle.membership.SimulatorOracle;
 import de.learnlib.util.mealy.MealyUtil;
 import net.automatalib.automata.transducers.MealyMachine;
 import net.automatalib.words.Alphabet;
@@ -18,17 +30,25 @@ import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
 
-import java.io.*;
-import java.nio.file.Files;
-import java.util.Arrays;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Random;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 // TODO:
 //  - take inspiration from https://github.com/PROGNOSISTool/learner/blob/main/src/learner/Main.java
 //  - see other examples here https://github.com/LearnLib/cav2015-example/tree/master/src/main/java/de/learnlib/example/cav2015/coffee
+//  - Structure:
+//      - DRAMAdapter (implementing SUL) to communicate to concrete DRAM
+//          - Start implementing Adapter for SyntheticDRAM
+//      - MembershipQueryOracle taking DRAMAdapter
+//      - Membership and Equivalence Oracle defined on top of query oracle
+//  - How to implement SUL? Docker container or regular Java wrapper?
+//      - Advantage of Docker: SUL can be implemented in any language, it can run daemon etc -- useful for rowhammer-tester?
 public class Main {
     // Logger
     private static final LearnLogger logger = LearnLogger.getLogger("ALARM");
@@ -36,11 +56,10 @@ public class Main {
     //Objects for counting queries
     private static Counter queryCounter;
     private static Counter membershipCounter;
-    private static Counter equivalenceCounter;
+    private static int equivalenceCounter;
 
     // Configuration
-    // private static Config config;
-
+    // private static Config config
 
 
 
@@ -68,33 +87,32 @@ public class Main {
     }
 
     private static void runLearner(Config config) throws Exception {
-        logger.logEvent("Building query oracle...");
-        MembershipOracle<String, Word<String>> queryOracle = buildQueryOracle(config);
-
-        logger.logEvent("Building membership oracle...");
-        MembershipOracle<String, Word<String>> memOracle = buildMembershipOracle(queryOracle);
-
-        logger.logEvent("Building equivalence oracle...");
-        EquivalenceOracle<MealyMachine<?, String, ?, String>, String, Word<String>> eqOracle = buildEquivalenceOracle(queryOracle);
-
-        logger.logEvent("Building Learner...");
-
         LearnerConfig learnerConfig = config.learnerConfig;
-        Alphabet<String> inputAlphabet = buildInputAlphabet(learnerConfig);
+        Alphabet<HammerSymbol> inputAlphabet = buildInputAlphabet(learnerConfig);
         Alphabet<String> outputAlphabet = buildOutputAlphabet(learnerConfig);
 
-//        System.out.println(inputAlphabet);
-        LearningAlgorithm<MealyMachine<?,String,?,String>, String, Word<String>> learner =
-                switch(learnerConfig.algorithm) {
-                    case TTT -> new TTTLearnerMealyBuilder<String, String>()
-                            .withAlphabet(inputAlphabet)
-                            .withOracle(memOracle)
-                            .create();
-                    case LSTAR -> new ExtensibleLStarMealyBuilder<String, String>()
-                            .withAlphabet(inputAlphabet)
-                            .withOracle(memOracle)
-                            .create();
-                };
+        // TODO: Use real SUL
+        SUL<HammerSymbol, String> dramSUL = null;
+
+        logger.logEvent("Building query oracle...");
+        MembershipOracle.MealyMembershipOracle<HammerSymbol, String> queryOracle =
+                buildQueryOracle(inputAlphabet, dramSUL);
+
+        logger.logEvent("Building membership oracle...");
+        MembershipOracle.MealyMembershipOracle<HammerSymbol, String> memOracle =
+                buildMembershipOracle(queryOracle);
+
+        logger.logEvent("Building equivalence oracle...");
+        EquivalenceOracle.MealyEquivalenceOracle<HammerSymbol, String> eqOracle =
+                buildEquivalenceOracle(queryOracle, learnerConfig, dramSUL);
+
+        logger.logEvent("Building Learner...");
+        LearningAlgorithm.MealyLearner<HammerSymbol, String> learner =
+                buildLearner(learnerConfig, inputAlphabet, memOracle);
+
+
+        System.out.println(inputAlphabet);
+
 
 //        learning = false;
 //        TTTLearnerMealy<String, String> learner = new TTTLearnerMealyBuilder<String, String>()
@@ -103,7 +121,7 @@ public class Main {
 //                .create();
 //
         logger.logEvent("Starting learner...");
-        MealyMachine<?, String, ?, String> model = learn(learner, eqOracle, inputAlphabet);
+        MealyMachine<?, HammerSymbol, ?, String> model = learn(learner, eqOracle, inputAlphabet);
 //
 //        // final output to out.txt
         logger.logEvent("Done.");
@@ -111,48 +129,85 @@ public class Main {
 
         logger.logStatistic(queryCounter);
         logger.logStatistic(membershipCounter);
-        logger.logStatistic(equivalenceCounter);
+        logger.logEvent("Equivalence Queries: " + equivalenceCounter);
         logger.logModel(model);
 
         logger.logEvent("Learner Finished!");
+    }
+
+    private static LearningAlgorithm.MealyLearner<HammerSymbol, String>
+        buildLearner(LearnerConfig learnerConfig, Alphabet<HammerSymbol> inputAlphabet,
+                     MembershipOracle.MealyMembershipOracle<HammerSymbol,
+                     String> memOracle) {
+
+        return switch(learnerConfig.algorithm) {
+                    case TTT -> new TTTLearnerMealyBuilder<HammerSymbol, String>()
+                            .withAlphabet(inputAlphabet)
+                            .withOracle(memOracle)
+                            .create();
+                    case LSTAR -> new ExtensibleLStarMealyBuilder<HammerSymbol, String>()
+                            .withAlphabet(inputAlphabet)
+                            .withOracle(memOracle)
+                            .create();
+                };
     }
 
     private static Alphabet<String> buildOutputAlphabet(LearnerConfig config) {
         return Alphabets.fromList(config.outputAlphabet);
     }
 
-    private static Alphabet<String> buildInputAlphabet(LearnerConfig config) {
-        List<Integer> rowInterval = new LinkedList<Integer>();
-        for (int r = config.minRow; r <= config.maxRow; r++)
-            rowInterval.add(r);
+    private static Alphabet<HammerSymbol> buildInputAlphabet(LearnerConfig config) {
+        List<HammerSymbol> hammerSymbols = new LinkedList<HammerSymbol>();
 
-        List<String> inAlphabet = cartesianProductToString(
-                cartesianProductToString(rowInterval, config.readCounts),
-                config.bitFlips);
-        inAlphabet = inAlphabet.stream().map(t -> "HAMMER(" + t + ")").collect(Collectors.toList());
+        for (int readCount: config.readCounts)
+            for (int row = config.minRow; row <= config.maxRow; row++)
+                for (int bitFlip: config.bitFlips)
+                    hammerSymbols.add(new HammerSymbol(readCount, row, bitFlip));
 
-        return Alphabets.fromList(inAlphabet);
+        return Alphabets.fromList(hammerSymbols);
     }
 
-    private static <S,T> List<String> cartesianProductToString(List<S> list1, List<T> list2) {
-        return list1
-                .stream()
-                .map(s1 -> list2.stream().map(s2 -> s1.toString() + "," + s2.toString()))
-                .flatMap(Function.identity())
-                .collect(Collectors.toList());
+    private static MembershipOracle.MealyMembershipOracle<HammerSymbol, String>
+        buildQueryOracle(Alphabet<HammerSymbol> inputAlphabet, SUL<HammerSymbol,String> sul) {
+
+        SULOracle<HammerSymbol, String> sulOracle = new SULOracle<>(sul);
+
+        // Introduce counter for SUL queries
+        MealyCounterOracle<HammerSymbol, String> counterOracle =
+                new MealyCounterOracle<>(sulOracle, "Queries to SUL");
+        queryCounter = counterOracle.getCounter();
+
+        // TODO: Handle non-determinism
+
+        // Add cache
+        return MealyCaches.createCache(inputAlphabet, counterOracle);
     }
 
-    private static EquivalenceOracle<MealyMachine<?, String, ?, String>, String, Word<String>> buildEquivalenceOracle(MembershipOracle<String, Word<String>> queryOracle) {
-        return null;
+    private static EquivalenceOracle.MealyEquivalenceOracle<HammerSymbol, String>
+        buildEquivalenceOracle(MembershipOracle.MealyMembershipOracle<HammerSymbol, String>  queryOracle,
+                               LearnerConfig config,
+                               SUL<HammerSymbol, String> sul) {
+
+        EquivalenceOracle.MealyEquivalenceOracle<HammerSymbol, String> eqOracle =
+                switch(config.eqOracle) {
+                     case RANDOM_WALK -> new RandomWalkEQOracle<>(sul, config.resetProbability, config.eqOracleMaxSteps,
+                    false, new Random(config.randomSeed));
+                     case WP_METHOD -> new MealyWpMethodEQOracle<>(queryOracle, config.eqOracleMaxSteps);
+                     case RANDOM_WP_METHOD -> new MealyRandomWpMethodEQOracle<>(queryOracle, 1,
+                             config.eqOracleMaxSteps);
+        };
+
+        equivalenceCounter = 0;
+        return eqOracle;
     }
 
-    private static MembershipOracle<String, Word<String>> buildMembershipOracle(MembershipOracle<String, Word<String>> queryOracle) {
-        return null;
+    private static MembershipOracle.MealyMembershipOracle<HammerSymbol, String>
+        buildMembershipOracle(MembershipOracle.MealyMembershipOracle<HammerSymbol, String> queryOracle) {
+
+        return new MealyCounterOracle<HammerSymbol, String>(queryOracle, "Membership Queries");
     }
 
-    private static MembershipOracle<String, Word<String>> buildQueryOracle(Config config) {
-        return null;
-    }
+
 
 
     private static Config loadConfig(String fileName) throws IOException {
@@ -165,10 +220,11 @@ public class Main {
         System.out.println("Usage: alarm <config_file>");
     }
 
-    private static MealyMachine<?, String, ?, String> learn(LearningAlgorithm<MealyMachine<?,String,?,String>, String, Word<String>> learner,
-                                                            EquivalenceOracle<MealyMachine<?, String, ?, String>, String, Word<String>> eqOracle,
-                                                            Alphabet<String> inputAlphabet)
-            throws IOException {
+    private static MealyMachine<?, HammerSymbol, ?, String>
+        learn(LearningAlgorithm.MealyLearner<HammerSymbol, String> learner,
+              EquivalenceOracle.MealyEquivalenceOracle<HammerSymbol, String> eqOracle,
+              Alphabet<HammerSymbol> inputAlphabet) throws IOException {
+
         int hypCounter = 1;
         boolean done = false;
 
@@ -176,14 +232,14 @@ public class Main {
 
         while (!done) {
             // stable hypothesis after membership queries
-            MealyMachine<?, String, ?, String> hyp = learner.getHypothesisModel();
+            MealyMachine<?, HammerSymbol, ?, String> hyp = learner.getHypothesisModel();
 
             // DotWriter.writeDotFile(hyp, alphabet, hypFileName);
 
             logger.logEvent("starting equivalence query");
 
             // search for counterexample
-            DefaultQuery<String, Word<String>> o = eqOracle.findCounterExample(hyp, inputAlphabet);
+            DefaultQuery<HammerSymbol, Word<String>> o = eqOracle.findCounterExample(hyp, inputAlphabet);
             logger.logEvent("completed equivalence query");
 
             // no counter example -> learning is done
@@ -193,10 +249,11 @@ public class Main {
             }
             o = MealyUtil.shortenCounterExample(hyp, o);
             assert o != null;
+            equivalenceCounter++;
 
-            hypCounter ++;
-            logger.logEvent("Sending counterexample to LearnLib.");
-            logger.logCounterexample(o.toString());
+//            hypCounter ++;
+//            logger.logEvent("Sending counterexample to LearnLib.");
+//            logger.logCounterexample(o.toString());
             // return counter example to the learner, so that it can use
             // it to generate new membership queries
             learner.refineHypothesis(o);

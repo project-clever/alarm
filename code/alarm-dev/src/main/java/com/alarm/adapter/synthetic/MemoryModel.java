@@ -12,6 +12,10 @@ import com.alarm.tool.Learner;
 import com.backblaze.erasure.RS;
 import com.backblaze.erasure.ReedSolomon;
 
+//test
+import com.alarm.adapter.synthetic.components.L;
+import com.alarm.adapter.synthetic.components.Loc;
+
 /**
  * This is a simplified model for DRAM implemented in a form of a Java class.
  * This model contains Target Row Refresh(TRR) and Error Correction Code(ECC)
@@ -183,61 +187,6 @@ public class MemoryModel {
 	}
 	// ENDO OF Memory Definition
 
-	// Memory Location Definition
-	public interface Loc extends Comparable<Loc> {
-		public static String eval(Loc l) throws IllegalArgumentException {
-			if (l instanceof L) {
-				L s = (L) l;
-				return "Loc" + s.loc;
-			} else {
-				throw new IllegalArgumentException("Invalid Loc!");
-			}
-		}
-
-		public static int getValue(Loc l) throws IllegalArgumentException {
-			if (l instanceof L) {
-				L s = (L) l;
-				return s.loc;
-			} else {
-				throw new IllegalArgumentException("Invalid Loc!");
-			}
-		}
-	}
-
-	public static class L implements Loc {
-		int loc;
-
-		public L(int loc) {
-			this.loc = loc;
-		}
-
-		@Override
-		public String toString() {
-			return loc + "";
-		}
-
-		@Override
-		public int compareTo(Loc l) {
-			L s = (L) l;
-			return loc - s.loc;
-		}
-
-		@Override
-		public boolean equals(Object loc) {
-			if (loc instanceof L) {
-				L s = (L) loc;
-				return this.loc == s.loc;
-			}
-			return false;
-		}
-
-		@Override
-		public int hashCode() {
-			return (41 * (41 + this.loc) + this.loc);
-		}
-
-	}
-	// END OF Memory Location Definition
 
 	// Environment Definition
 	public static class Env {

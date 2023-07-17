@@ -13,8 +13,8 @@ import com.alarm.helper.Adj;
 import com.alarm.helper.Path;
 import com.alarm.tool.Adapter.Attack;
 import com.alarm.tool.Adapter.Label;
-import com.alarm.adapter.synthetic.MemoryModel.L;
-import com.alarm.adapter.synthetic.MemoryModel.Loc;
+import com.alarm.adapter.synthetic.components.L;
+import com.alarm.adapter.synthetic.components.Loc;
 import com.backblaze.erasure.RS;
 
 import de.learnlib.algorithms.lstar.mealy.ExtensibleLStarMealyBuilder;

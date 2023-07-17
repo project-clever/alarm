@@ -6,8 +6,8 @@ import com.alarm.exceptions.ECCCorrectionException;
 import com.alarm.exceptions.ECCDetectionException;
 import com.alarm.exceptions.FlipException;
 import com.alarm.exceptions.TRRException;
-import com.alarm.adapter.synthetic.MemoryModel.L;
-import com.alarm.adapter.synthetic.MemoryModel.Loc;
+import com.alarm.adapter.synthetic.components.L;
+import com.alarm.adapter.synthetic.components.Loc;
 import com.alarm.adapter.synthetic.MemoryModel.MemSystem;
 import com.backblaze.erasure.RS;
 

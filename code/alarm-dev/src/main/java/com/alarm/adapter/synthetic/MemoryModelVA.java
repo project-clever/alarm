@@ -14,6 +14,8 @@ import com.backblaze.erasure.ReedSolomon;
 //test
 import com.alarm.adapter.synthetic.components.L;
 import com.alarm.adapter.synthetic.components.Loc;
+import com.alarm.adapter.synthetic.components.Mem;
+import com.alarm.adapter.synthetic.components.Env;
 
 /**
  * This is a simplified model for DRAM implemented in a form of a Java class.
@@ -146,109 +148,6 @@ public class MemoryModelVA {
 	}
 	// END OF Memory System Definition
 
-	// Memory Definition
-	public static class Mem {
-		HashMap<Loc, Integer> map;
-
-		public Mem() {
-			this.map = new HashMap<Loc, Integer>();
-		}
-
-		public Mem(HashMap<Loc, Integer> map) {
-			this.map = map;
-		}
-
-		public int read(Loc loc) {
-			return this.map.get(loc);
-		}
-
-		public void write(Loc loc, int n) {
-			this.map.put(loc, n);
-		}
-
-		public void flip(Loc loc, int v) {
-			int tmp = this.map.get(loc);
-			this.map.put(loc, tmp ^ FLIP_BITS[v]);
-		}
-
-		public HashSet<Loc> neighbours(Loc loc) {
-			HashSet<Loc> out = new HashSet<>();
-			for (Loc l : this.map.keySet()) {
-				if (distance(loc, l) <= BLAST_RADIUS && distance(loc, l) > 0)
-					out.add(l);
-			}
-			return out;
-		}
-
-		public int distance(Loc l1, Loc l2) {
-			int l1_v = Loc.getValue(l1);
-			int l2_v = Loc.getValue(l2);
-			return Math.abs(l1_v - l2_v);
-		}
-	}
-	// ENDO OF Memory Definition
-
-
-	// END OF Memory Location Definition
-
-	// Environment Definition
-	public static class Env {
-		public int clocks;
-		public CountRowVars counter;
-
-		public Env() {
-			this.clocks = 0;
-			this.counter = new CountRowVars();
-		}
-
-		public Env(int clocks, CountRowVars counter) {
-			this.clocks = clocks;
-			this.counter = counter;
-		}
-
-		public void checkClocks() {
-			this.clocks = this.clocks + 1;
-
-			if (this.clocks >= REFRESH_INTERVAL) {
-				this.clocks = 1;
-				this.resetCounters();
-			}
-		}
-
-		public void tickCounter(Loc loc, int v) {
-			if (this.counter.map.containsKey(loc)) {
-				int tmp = this.counter.map.get(loc);
-				this.counter.map.put(loc, tmp + v);
-			} else {
-				this.counter.map.put(loc, v);
-			}
-		}
-
-		public void resetCounter(Loc loc, int v) {
-			this.counter.map.put(loc, v);
-		}
-
-		public void resetCounters() {
-			for (Loc loc : this.counter.map.keySet()) {
-				resetCounter(loc, 0);
-			}
-		}
-	}
-	// END OF Environment Definition
-
-	// Row Counter Definition
-	public static class CountRowVars {
-		public HashMap<Loc, Integer> map;
-
-		public CountRowVars() {
-			this.map = new HashMap<Loc, Integer>();
-		}
-
-		public CountRowVars(HashMap<Loc, Integer> map) {
-			this.map = map;
-		}
-	}
-	// END OF Row Counter Definition
 
 	// ECC Definition
 	public static class ECC {

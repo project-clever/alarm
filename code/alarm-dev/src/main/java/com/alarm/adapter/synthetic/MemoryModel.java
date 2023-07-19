@@ -1,7 +1,6 @@
 package com.alarm.adapter.synthetic;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Random;
 
 import com.alarm.exceptions.ECCCorrectionException;

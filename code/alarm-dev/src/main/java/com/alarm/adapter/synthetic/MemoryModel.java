@@ -48,7 +48,7 @@ public class MemoryModel {
 	public static int TRR_RADIUS = Learner.TRR_RADIUS;
 	public static boolean ECC_STATUS = Learner.ECC_STATUS;
 
-	public static final int FLIP_BITS[] = { 0, 1, 3, 7, 15, 31, 63, 127, 255, 511, 1023 };
+	public static final int[] FLIP_BITS = { 0, 1, 3, 7, 15, 31, 63, 127, 255, 511, 1023 };
 	public static final double FLIP_PROBABILITY = Adapter.FLIP_PROBABILITY;
 
 	public static final int WORD_SIZE = Learner.WORD_SIZE;
@@ -62,7 +62,7 @@ public class MemoryModel {
 		public ECC ecc;
 		public TRR trr;
 
-		public MemSystem() {
+		public MemSystem() {//same constructor and inherited variables atm
 			MEMORY_SIZE = Learner.MEMORY_SIZE;
 			TRR_THRESHOLD = Learner.TRR_THRESHOLD;
 			TRR_COUNTERS = Learner.TRR_COUNTERS;
@@ -74,7 +74,7 @@ public class MemoryModel {
 
 			Mem mem = new Mem();
 			int size = MEMORY_SIZE;
-			Loc[] locs = new Loc[size];
+			L[] locs = new L[size];
 			for (int i = 0; i < size; i++) {
 				locs[i] = new L(i);
 				mem.write(locs[i], 0);
@@ -92,14 +92,14 @@ public class MemoryModel {
 			this.trr = trr;
 		}
 
-		public int read(Loc loc, int flip_v) throws TRRException {
+		public int read(L loc, int flip_v) throws TRRException {
 			clock(loc, flip_v);
 			this.env.resetCounter(loc, 0);
 			this.trr.resetCounter(loc);
 			return this.mem.read(loc);
 		}
 
-		public void write(Loc loc, int v, int flip_v) throws TRRException {
+		public void write(L loc, int v, int flip_v) throws TRRException {
 			clock(loc, flip_v);
 			this.env.resetCounter(loc, 0);
 			this.trr.resetCounter(loc);
@@ -119,18 +119,18 @@ public class MemoryModel {
 			return this.ecc;
 		}
 
-		public void clock(Loc loc, int flip_v) throws TRRException {
+		public void clock(L loc, int flip_v) throws TRRException {
 			this.trr.checkClocks(this.env.clocks);
 			this.env.checkClocks();
-			for (Loc l : this.mem.neighbours(loc)) {
-				if (this.trr.checkSingleCounter(l, this.mem.distance(loc, l))) {
-					int attenuation_factor = BLAST_RADIUS - this.mem.distance(loc, l) + 1;
+			for (Loc<Integer> l : this.mem.neighbours(loc)) {
+				if (this.trr.checkSingleCounter((L) l, loc.distance(l))) {
+					int attenuation_factor = BLAST_RADIUS - loc.distance(l)+ 1;
 					this.env.tickCounter(l, attenuation_factor);
-					this.trr.tickCounter(l, attenuation_factor, this.mem.distance(loc, l));
+					this.trr.tickCounter((L) l, attenuation_factor, loc.distance(l));
 				} else {
 					this.env.resetCounter(l, 0);
-					this.trr.resetCounter(l);
-					read(l, flip_v);
+					this.trr.resetCounter((L) l);
+					read((L) l, flip_v);
 					throw new TRRException();
 				}
 				Random r = new Random();
@@ -139,7 +139,7 @@ public class MemoryModel {
 				if (tmp >= RH_THRESHOLD && pr <= FLIP_PROBABILITY) {
 					this.mem.flip(l, flip_v);
 					for (int i = 0; i < flip_v; i++)
-						this.ecc.tweak(l, i, (byte) 1);
+						this.ecc.tweak((L) l, i, (byte) 1);
 				}
 			}
 		}
@@ -151,13 +151,13 @@ public class MemoryModel {
 
 	// ECC Definition
 	public static class ECC {
-		public HashMap<Loc, byte[][]> map;
+		public HashMap<L, byte[][]> map;
 
 		public ECC() {
-			map = new HashMap<Loc, byte[][]>();
+			map = new HashMap<>();
 		}
 
-		public boolean validate(Loc loc, Mem mem) throws ECCCorrectionException, ECCDetectionException {
+		public boolean validate(L loc, Mem mem) throws ECCCorrectionException, ECCDetectionException {
 			if (!ECC_STATUS)
 				return true;
 			String code = "" + Integer.toBinaryString(mem.read(loc));
@@ -174,26 +174,26 @@ public class MemoryModel {
 		}
 
 		public boolean validateAll(Mem mem) throws ECCCorrectionException, ECCDetectionException {
-			for (Loc l : mem.map.keySet()) {
-				validate(l, mem);
+			for (Loc<Integer> l : mem.map.keySet()) {
+				validate((L) l, mem);
 			}
 			return true;
 		}
 
-		public void tweak(Loc loc, int position, byte val) {
-			byte tmp[][] = this.map.get(loc);
+		public void tweak(L loc, int position, byte val) {
+			byte[][] tmp = this.map.get(loc);
 			tmp[position][0] = val;
 			this.map.put(loc, tmp);
 		}
 
-		public void add(Loc loc, int val) {
+		public void add(L loc, int val) {
 			String in = Integer.toBinaryString(val);
 			while (in.length() < WORD_SIZE)
 				in = "0" + in;
 			this.map.put(loc, RS.encode(in));
 		}
 
-		public byte[][] get(Loc loc) {
+		public byte[][] get(L loc) {
 			return this.map.get(loc);
 		}
 	}
@@ -203,21 +203,21 @@ public class MemoryModel {
 	public static class TRR {
 		int counters;
 		int radius;
-		public HashMap<Loc, Integer> map;
+		public HashMap<L, Integer> map;
 
 		public TRR() {
 			counters = TRR_COUNTERS;
 			radius = TRR_RADIUS;
-			map = new HashMap<Loc, Integer>();
+			map = new HashMap<>();
 		}
 
-		public TRR(int counters, HashMap<Loc, Integer> map, int radius) {
+		public TRR(int counters, HashMap<L, Integer> map, int radius) {
 			this.counters = counters;
 			this.radius = radius;
 			this.map = map;
 		}
 
-		public boolean checkSingleCounter(Loc loc, int distance) {
+		public boolean checkSingleCounter(L loc, int distance) {
 			if (!this.map.containsKey(loc)) {
 				if (this.map.size() < this.counters && distance <= radius) {
 					this.map.put(loc, 1);
@@ -227,7 +227,7 @@ public class MemoryModel {
 			return this.map.get(loc) < TRR_THRESHOLD;
 		}
 
-		public void tickCounter(Loc loc, int v, int distance) {
+		public void tickCounter(L loc, int v, int distance) {
 			if (this.map.containsKey(loc)) {
 				int tmp = this.map.get(loc);
 				this.map.put(loc, tmp + v);
@@ -236,14 +236,14 @@ public class MemoryModel {
 			}
 		}
 
-		public void resetCounter(Loc loc) {
+		public void resetCounter(L loc) {
 			if (this.map.containsKey(loc)) {
 				this.map.remove(loc);
 			}
 		}
 
 		public void resetCounters() {
-			for (Loc loc : this.map.keySet()) {
+			for (L loc : this.map.keySet()) {
 				resetCounter(loc);
 			}
 		}
@@ -268,7 +268,7 @@ public class MemoryModel {
 				return mem;
 			} else if (c instanceof Assign) {
 				Assign s = (Assign) c;
-				mem.write(s.loc, ArithE.eval(s.a, mem, flip_v), flip_v);
+				mem.write((L) s.loc, ArithE.eval(s.a, mem, flip_v), flip_v);
 				return mem;
 			} else if (c instanceof Seq) {
 				Seq s = (Seq) c;
@@ -355,7 +355,7 @@ public class MemoryModel {
 				return s.n;
 			} else if (a instanceof Var) {
 				Var s = (Var) a;
-				return mem.read(s.loc, flip_v);
+				return mem.read((L) s.loc, flip_v);
 			} else if (a instanceof Aexp) {
 				Aexp s = (Aexp) a;
 				int op = Aop.eval(s.op);

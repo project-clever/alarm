@@ -46,7 +46,7 @@ public class MemoryModelVA extends MemoryModel{
 
 			Mem mem = new Mem();
 			int size = MEMORY_SIZE;
-			Loc[] locs = new Loc[size];
+			L[] locs = new L[size];
 			for (int i = 0; i < size; i++) {
 				locs[i] = new L(i);
 				mem.write(locs[i], 0);
@@ -64,13 +64,13 @@ public class MemoryModelVA extends MemoryModel{
 			this.trr = trr;
 		}
 
-		public int read(Loc loc, int flip_v) throws TRRException {
+		public int read(L loc, int flip_v) throws TRRException {
 			clock(loc, flip_v);
 			this.env.resetCounter(loc, 0);
 			return this.mem.read(loc);
 		}
 
-		public void write(Loc loc, int v, int flip_v) throws TRRException {
+		public void write(L loc, int v, int flip_v) throws TRRException {
 			clock(loc, flip_v);
 			this.env.resetCounter(loc, 0);
 			this.mem.write(loc, v);
@@ -89,31 +89,31 @@ public class MemoryModelVA extends MemoryModel{
 			return this.ecc;
 		}
 
-		public void clock(Loc loc, int flip_v) throws TRRException {
+		public void clock(L loc, int flip_v) throws TRRException {
 			this.trr.checkClocks(this.env.clocks);
 			this.env.checkClocks();
-			for (Loc l : this.mem.neighbours(loc)) {
-				int attenuation_factor = BLAST_RADIUS - this.mem.distance(loc, l) + 1;
+			for (Loc<Integer> l : this.mem.neighbours(loc)) {
+				int attenuation_factor = BLAST_RADIUS - loc.distance(l) + 1;
 				this.env.tickCounter(l, attenuation_factor);
 			}
-			this.trr.tickCounter(loc, 1);
-			if (!this.trr.checkSingleCounter(loc)) {
+			this.trr.tickCounter((L) loc, 1);
+			if (!this.trr.checkSingleCounter((L) loc)) {
 				this.env.resetCounter(loc, 0);
 				this.trr.resetCounter(loc);
 				read(loc, flip_v);
-				for (Loc l : this.mem.neighbours(loc)) {
-					read(l, flip_v);
+				for (Loc<Integer> l : this.mem.neighbours(loc)) {
+					read((L) l, flip_v);
 				}
 				throw new TRRException();
 			}
-			for (Loc l : this.mem.neighbours(loc)) {
+			for (Loc<Integer> l : this.mem.neighbours(loc)) {
 				Random r = new Random();
 				double pr = r.nextDouble();
 				int tmp = this.env.counter.map.get(l);
 				if (tmp >= RH_THRESHOLD && pr <= FLIP_PROBABILITY) {
 					this.mem.flip(l, flip_v);
 					for (int i = 0; i < flip_v; i++)
-						this.ecc.tweak(l, i, (byte) 1);
+						this.ecc.tweak((L) l, i, (byte) 1);
 				}
 			}
 		}
@@ -123,13 +123,13 @@ public class MemoryModelVA extends MemoryModel{
 
 	// ECC Definition
 	public static class ECC {
-		public HashMap<Loc, byte[][]> map;
+		public HashMap<L, byte[][]> map;
 
 		public ECC() {
-			map = new HashMap<Loc, byte[][]>();
+			map = new HashMap<>();
 		}
 
-		public boolean validate(Loc loc, Mem mem) throws ECCCorrectionException, ECCDetectionException {
+		public boolean validate(L loc, Mem mem) throws ECCCorrectionException, ECCDetectionException {
 			if (!ECC_STATUS)
 				return true;
 			String code = "" + Integer.toBinaryString(mem.read(loc));
@@ -146,26 +146,26 @@ public class MemoryModelVA extends MemoryModel{
 		}
 
 		public boolean validateAll(Mem mem) throws ECCCorrectionException, ECCDetectionException {
-			for (Loc l : mem.map.keySet()) {
-				validate(l, mem);
+			for (Loc<Integer> l : mem.map.keySet()) {
+				validate((L) l, mem);
 			}
 			return true;
 		}
 
-		public void tweak(Loc loc, int position, byte val) {
-			byte tmp[][] = this.map.get(loc);
+		public void tweak(L loc, int position, byte val) {
+			byte[][] tmp = this.map.get(loc);
 			tmp[position][0] = val;
 			this.map.put(loc, tmp);
 		}
 
-		public void add(Loc loc, int val) {
+		public void add(L loc, int val) {
 			String in = Integer.toBinaryString(val);
 			while (in.length() < WORD_SIZE)
 				in = "0" + in;
 			this.map.put(loc, RS.encode(in));
 		}
 
-		public byte[][] get(Loc loc) {
+		public byte[][] get(L loc) {
 			return this.map.get(loc);
 		}
 	}
@@ -175,25 +175,25 @@ public class MemoryModelVA extends MemoryModel{
 	public static class TRR {
 		int counters;
 		int radius;
-		public HashMap<Loc, Integer> map;
+		public HashMap<L, Integer> map;
 
 		public TRR() {
 			counters = TRR_COUNTERS;
 			radius = TRR_RADIUS;
-			map = new HashMap<Loc, Integer>();
+			map = new HashMap<>();
 		}
 
-		public TRR(int counters, HashMap<Loc, Integer> map, int radius) {
+		public TRR(int counters, HashMap<L, Integer> map, int radius) {
 			this.counters = counters;
 			this.radius = radius;
 			this.map = map;
 		}
 
-		public boolean checkSingleCounter(Loc loc) {
+		public boolean checkSingleCounter(L loc) {
 			return this.map.get(loc) < TRR_THRESHOLD;
 		}
 
-		public void tickCounter(Loc loc, int v) {
+		public void tickCounter(L loc, int v) {
 			if (this.map.containsKey(loc)) {
 				int tmp = this.map.get(loc);
 				this.map.put(loc, tmp + v);
@@ -201,8 +201,8 @@ public class MemoryModelVA extends MemoryModel{
 				this.map.put(loc, v);
 			} else {
 				int min = Integer.MAX_VALUE;
-				Loc minKey = null;
-				for (Loc l : this.map.keySet()) {
+				L minKey = null;
+				for (L l : this.map.keySet()) {
 					if (this.map.get(l) < min) {
 						min = this.map.get(l);
 						minKey = l;
@@ -213,14 +213,14 @@ public class MemoryModelVA extends MemoryModel{
 			}
 		}
 
-		public void resetCounter(Loc loc) {
+		public void resetCounter(L loc) {
 			if (this.map.containsKey(loc)) {
 				this.map.put(loc, 0);
 			}
 		}
 
 		public void resetCounters() {
-			for (Loc loc : this.map.keySet()) {
+			for (L loc : this.map.keySet()) {
 				resetCounter(loc);
 			}
 		}

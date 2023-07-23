@@ -28,8 +28,8 @@ public class Adapter {
 
 	// Memory Definition
 	public static class Memory {
-		HashMap<Loc, Character> learner_map;
-		HashMap<Loc, Integer> memory_map;
+		HashMap<L, Character> learner_map;
+		HashMap<L, Integer> memory_map;
 		HashMap<Character, Integer> variable_map;
 		MemSystem mem;
 		boolean flip;
@@ -40,9 +40,9 @@ public class Adapter {
 			CODE_SIZE = Learner.CODE_SIZE;
 			WORD_SIZE = Learner.WORD_SIZE;
 
-			this.learner_map = new HashMap<Loc, Character>();
+			this.learner_map = new HashMap<>();
 			int size = MEMORY_SIZE;
-			Loc[] locs = new Loc[size];
+			L[] locs = new L[size];
 			char c = 'x';
 			for (int i = 0; i < size; i++) {
 				locs[i] = new L(i);
@@ -50,9 +50,9 @@ public class Adapter {
 			}
 			this.variable_map = new HashMap<Character, Integer>();
 			variable_map.put(c, 0);
-			this.memory_map = new HashMap<Loc, Integer>();
+			this.memory_map = new HashMap<>();
 			this.mem = new MemSystem();
-			for (Loc loc : learner_map.keySet()) {
+			for (L loc : learner_map.keySet()) {
 				memory_map.put(loc, variable_map.get(learner_map.get(loc)));
 				mem.mem.write(loc, variable_map.get(learner_map.get(loc)));
 				mem.ecc.add(loc, variable_map.get(learner_map.get(loc)));
@@ -61,7 +61,7 @@ public class Adapter {
 			ecc = true;
 		}
 
-		public char read(Loc loc, int flip_v)
+		public char read(L loc, int flip_v)
 				throws FlipException, ECCCorrectionException, ECCDetectionException, TRRException {
 			int r = this.mem.read(loc, flip_v);
 			this.ecc = this.mem.ecc.validateAll(this.mem.mem);
@@ -70,7 +70,7 @@ public class Adapter {
 			}
 			char c = 'x';
 			if (!flip) {
-				for (Loc l : memory_map.keySet()) {
+				for (L l : memory_map.keySet()) {
 					if (!memory_map.get(l).equals(mem.mem.read(l))) {
 						flip = true;
 						break;
@@ -83,7 +83,7 @@ public class Adapter {
 			return c;
 		}
 
-		public void write(Loc loc, char c, int flip_v)
+		public void write(L loc, char c, int flip_v)
 				throws FlipException, ECCCorrectionException, ECCDetectionException, TRRException {
 			this.mem.write(loc, this.variable_map.get(c), flip_v);
 			this.ecc = this.mem.ecc.validateAll(this.mem.mem);
@@ -91,7 +91,7 @@ public class Adapter {
 				throw new ECCCorrectionException("ECC has detected an error");
 			}
 			if (!flip) {
-				for (Loc l : memory_map.keySet()) {
+				for (Loc<Integer> l : memory_map.keySet()) {
 					if (!memory_map.get(l).equals(mem.mem.read(l))) {
 						flip = true;
 						break;
@@ -103,7 +103,7 @@ public class Adapter {
 			}
 		}
 
-		public String access(Label label, Loc loc, int flip_v) throws Exception {
+		public String access(Label label, L loc, int flip_v) throws Exception {
 			return Label.eval(this, label, loc, flip_v);
 		}
 
@@ -112,7 +112,7 @@ public class Adapter {
 
 	// Label Definition
 	public interface Label {
-		public static String eval(Memory mem, Label label, Loc loc, int flip_v)
+		public static String eval(Memory mem, Label label, L loc, int flip_v)
 				throws FlipException, ECCCorrectionException, ECCDetectionException, TRRException {
 			String out = "";
 			boolean ec = false, trr = false;
@@ -129,20 +129,20 @@ public class Adapter {
 				Attack s = (Attack) label;
 				for (int i = 0; i < s.num; i++) {
 					try {
-						out = "" + (mem.read(loc, flip_v) == 'x' ? "NoFlip" : "Flip");
+						out = "" + (mem.read((L) loc, flip_v) == 'x' ? "NoFlip" : "Flip");
 					} catch (ECCCorrectionException e) {
-						for (Loc l : mem.mem.mem.neighbours(loc)) {
+						for (Loc<Integer> l : mem.mem.mem.neighbours(loc)) {
 							try {
-								byte[][] tmp = mem.mem.getECC().get(l);
+								byte[][] tmp = mem.mem.getECC().get((L) l);
 								int inputSize = WORD_SIZE;
 								int storedSize = inputSize + RS.BYTES_IN_INT;
 								int shardSize = (storedSize + inputSize - 1) / inputSize;
 								RS.decode(tmp, shard_present, shardSize, inputSize);
-								;
+
 								String tmp2 = RS.array2Text(tmp, shardSize, inputSize);
 								int val_tmp2 = Integer.parseInt(tmp2);
-								if (val_tmp2 != mem.mem.read(l, flip_v)) {
-									mem.mem.write(l, val_tmp2, flip_v);
+								if (val_tmp2 != mem.mem.read((L) l, flip_v)) {
+									mem.mem.write((L) l, val_tmp2, flip_v);
 									Attack tmp_s = new Attack(s.num - i);
 									out = Label.eval(mem, tmp_s, loc, flip_v);
 									ec = true;

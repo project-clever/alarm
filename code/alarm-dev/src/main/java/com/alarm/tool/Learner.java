@@ -183,7 +183,7 @@ public final class Learner {
 			bits_to_flip[i] = i;
 		}
 
-		Method m_access = Adapter.Memory.class.getMethod("access", Label.class, Loc.class, int.class);
+		Method m_access = Adapter.Memory.class.getMethod("access", Label.class, L.class, int.class);
 
 		Label label_attack = new Attack(NUMBER_OF_ACCESSES);
 		MethodInput access = driver.addInput(

@@ -16,7 +16,6 @@ import com.alarm.adapter.synthetic.MemoryModel.Com;
 import com.alarm.adapter.synthetic.MemoryModel.If;
 import com.alarm.adapter.synthetic.components.L;
 import com.alarm.adapter.synthetic.MemoryModel.LoE;
-import com.alarm.adapter.synthetic.components.Loc;
 import com.alarm.adapter.synthetic.MemoryModel.MemSystem;
 import com.alarm.adapter.synthetic.MemoryModel.Neg;
 import com.alarm.adapter.synthetic.MemoryModel.Num;
@@ -28,9 +27,7 @@ import com.alarm.adapter.synthetic.MemoryModel.Truth;
 import com.alarm.adapter.synthetic.MemoryModel.Var;
 import com.alarm.adapter.synthetic.MemoryModel.While;
 
-//test
-import com.alarm.adapter.synthetic.components.L;
-import com.alarm.adapter.synthetic.components.Loc;
+
 
 
 class MemoryModelTest {
@@ -47,7 +44,7 @@ class MemoryModelTest {
 		int flips = 5;
 		MemSystem mem = new MemSystem();
 		int locVal = 0;
-		Loc loc[] = new Loc[5];
+		L loc[] = new L[5];
 		for (int i = 0; i < loc.length; i++) {
 			loc[i] = new L(i);
 			mem.mem.write(loc[i], locVal);
@@ -72,8 +69,8 @@ class MemoryModelTest {
 	void SkipTest() throws IllegalArgumentException, TRRException {
 		int flips = 0;
 		MemSystem mem = new MemSystem();
-		Loc loc1 = new L(1);
-		Loc loc2 = new L(2);
+		L loc1 = new L(1);
+		L loc2 = new L(2);
 		int loc1Val = 10;
 		int loc2Val = 20;
 		mem.mem.write(loc1, loc1Val);
@@ -97,8 +94,8 @@ class MemoryModelTest {
 	void AssignTest() throws IllegalArgumentException, TRRException {
 		int flips = 0;
 		MemSystem mem = new MemSystem();
-		Loc loc1 = new L(1);
-		Loc loc2 = new L(2);
+		L loc1 = new L(1);
+		L loc2 = new L(2);
 		int loc1Val = 10;
 		int loc2Val = 20;
 		mem.mem.write(loc1, loc1Val);
@@ -145,8 +142,8 @@ class MemoryModelTest {
 	void SeqTest() throws IllegalArgumentException, TRRException {
 		int flips = 0;
 		MemSystem mem = new MemSystem();
-		Loc loc1 = new L(1);
-		Loc loc2 = new L(2);
+		L loc1 = new L(1);
+		L loc2 = new L(2);
 		int loc1Val = 10;
 		int loc2Val = 20;
 		mem.mem.write(loc1, loc1Val);
@@ -214,8 +211,8 @@ class MemoryModelTest {
 	void IfTest() throws IllegalArgumentException, TRRException {
 		int flips = 0;
 		MemSystem mem = new MemSystem();
-		Loc loc1 = new L(1);
-		Loc loc2 = new L(2);
+		L loc1 = new L(1);
+		L loc2 = new L(2);
 		int loc1Val = 10;
 		int loc2Val = 20;
 		mem.mem.write(loc1, loc1Val);
@@ -293,8 +290,8 @@ class MemoryModelTest {
 	void WhileTest() throws IllegalArgumentException, TRRException {
 		int flips = 0;
 		MemSystem mem = new MemSystem();
-		Loc loc1 = new L(1);
-		Loc loc2 = new L(2);
+		L loc1 = new L(1);
+		L loc2 = new L(2);
 		int loc1Val = 10;
 		int loc2Val = 20;
 		mem.mem.write(loc1, loc1Val);

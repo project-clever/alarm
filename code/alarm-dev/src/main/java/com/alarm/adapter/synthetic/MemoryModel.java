@@ -21,6 +21,20 @@ import com.backblaze.erasure.ReedSolomon;
  *
  * @author ########
  */
+//TODO: idea ->Transfer operations
+final class Op{
+	public static final int PLUS = 1;
+	public static final int MINUS = 2;
+	public static final int MUL = 3;
+
+	public static final int AND = 4;
+	public static final int OR = 5;
+
+	public static final int EQU = 6;
+	public static final int LOE = 7;
+
+	public static final int NEG = 8;
+}
 
 public class MemoryModel {
 
@@ -191,11 +205,6 @@ public class MemoryModel {
 			while (in.length() < WORD_SIZE)
 				in = "0" + in;
 			this.map.put(loc, RS.encode(in));
-		}
-
-		@Override
-		public byte[][] get(L loc) {
-			return this.map.get(loc);
 		}
 	}
 	// END OF ECC Definition

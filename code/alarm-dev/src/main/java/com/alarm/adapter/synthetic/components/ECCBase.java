@@ -56,10 +56,13 @@ public abstract class ECCBase<V extends Loc<?>>{
     public abstract void add(V loc, int val);
 
     /**
-     * Retrieves the ECC data for the specified Location.
+     * Retrieves the ECC data for the specified Location.<br/>
+     * (It may return a null value if the key is mapped to a null value)
      *
      * @param loc The Location for which to retrieve the ECC data.
      * @return The ECC data as a 2D byte array.
      */
-    public abstract byte[][] get(V loc);
+    public byte[][] get(V loc) {
+        return this.map.get(loc);
+    }
 }

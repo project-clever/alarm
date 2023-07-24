@@ -11,8 +11,6 @@ import com.alarm.tool.Learner;
 import com.backblaze.erasure.RS;
 import com.backblaze.erasure.ReedSolomon;
 
-//test
-
 
 /**
  * This is a simplified model for DRAM implemented in a form of a Java class.
@@ -164,11 +162,6 @@ public class MemoryModelVA extends MemoryModel{
 			while (in.length() < WORD_SIZE)
 				in = "0" + in;
 			this.map.put(loc, RS.encode(in));
-		}
-
-		@Override
-		public byte[][] get(L loc) {
-			return this.map.get(loc);
 		}
 	}
 	// END OF ECC Definition

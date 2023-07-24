@@ -12,9 +12,6 @@ import com.backblaze.erasure.RS;
 import com.backblaze.erasure.ReedSolomon;
 
 
-//test
-
-
 /**
  * This is a simplified model for DRAM implemented in a form of a Java class.
  * This model contains Target Row Refresh(TRR) and Error Correction Code(ECC)
@@ -170,11 +167,6 @@ public class MemoryModelVC extends MemoryModel{
 			while (in.length() < WORD_SIZE)
 				in = "0" + in;
 			this.map.put(loc, RS.encode(in));
-		}
-
-		@Override
-		public byte[][] get(L loc) {
-			return this.map.get(loc);
 		}
 	}
 	// END OF ECC Definition

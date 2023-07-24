@@ -3,6 +3,7 @@ package com.alarm.adapter.synthetic;
 import java.util.HashMap;
 import java.util.Random;
 
+import com.alarm.adapter.synthetic.components.*;
 import com.alarm.exceptions.ECCCorrectionException;
 import com.alarm.exceptions.ECCDetectionException;
 import com.alarm.exceptions.TRRException;
@@ -11,10 +12,7 @@ import com.backblaze.erasure.RS;
 import com.backblaze.erasure.ReedSolomon;
 
 //test
-import com.alarm.adapter.synthetic.components.L;
-import com.alarm.adapter.synthetic.components.Loc;
-import com.alarm.adapter.synthetic.components.Mem;
-import com.alarm.adapter.synthetic.components.Env;
+
 
 /**
  * This is a simplified model for DRAM implemented in a form of a Java class.
@@ -122,17 +120,17 @@ public class MemoryModelVA extends MemoryModel{
 
 
 	// ECC Definition
-	public static class ECC {
-		public HashMap<L, byte[][]> map;
+	public static class ECC extends ECCBase<L> {
 
 		public ECC() {
-			map = new HashMap<>();
+			super();
 		}
 
+		@Override
 		public boolean validate(L loc, Mem mem) throws ECCCorrectionException, ECCDetectionException {
 			if (!ECC_STATUS)
 				return true;
-			String code = "" + Integer.toBinaryString(mem.read(loc));
+			String code = Integer.toBinaryString(mem.read(loc));
 			while (code.length() < WORD_SIZE)
 				code = "0" + code;
 
@@ -145,6 +143,7 @@ public class MemoryModelVA extends MemoryModel{
 			return true;
 		}
 
+		@Override
 		public boolean validateAll(Mem mem) throws ECCCorrectionException, ECCDetectionException {
 			for (Loc<Integer> l : mem.map.keySet()) {
 				validate((L) l, mem);
@@ -152,12 +151,14 @@ public class MemoryModelVA extends MemoryModel{
 			return true;
 		}
 
+		@Override
 		public void tweak(L loc, int position, byte val) {
 			byte[][] tmp = this.map.get(loc);
 			tmp[position][0] = val;
 			this.map.put(loc, tmp);
 		}
 
+		@Override
 		public void add(L loc, int val) {
 			String in = Integer.toBinaryString(val);
 			while (in.length() < WORD_SIZE)
@@ -165,6 +166,7 @@ public class MemoryModelVA extends MemoryModel{
 			this.map.put(loc, RS.encode(in));
 		}
 
+		@Override
 		public byte[][] get(L loc) {
 			return this.map.get(loc);
 		}
@@ -172,27 +174,22 @@ public class MemoryModelVA extends MemoryModel{
 	// END OF ECC Definition
 
 	// TRR Definition
-	public static class TRR {
-		int counters;
-		int radius;
-		public HashMap<L, Integer> map;
+	public static class TRR extends TRRBase<L>{
 
 		public TRR() {
-			counters = TRR_COUNTERS;
-			radius = TRR_RADIUS;
-			map = new HashMap<>();
+			super();
 		}
 
 		public TRR(int counters, HashMap<L, Integer> map, int radius) {
-			this.counters = counters;
-			this.radius = radius;
-			this.map = map;
+			super(counters, map, radius);
 		}
 
+		@Override
 		public boolean checkSingleCounter(L loc) {
 			return this.map.get(loc) < TRR_THRESHOLD;
 		}
 
+		@Override
 		public void tickCounter(L loc, int v) {
 			if (this.map.containsKey(loc)) {
 				int tmp = this.map.get(loc);
@@ -212,26 +209,6 @@ public class MemoryModelVA extends MemoryModel{
 				this.map.put(loc, v);
 			}
 		}
-
-		public void resetCounter(L loc) {
-			if (this.map.containsKey(loc)) {
-				this.map.put(loc, 0);
-			}
-		}
-
-		public void resetCounters() {
-			for (L loc : this.map.keySet()) {
-				resetCounter(loc);
-			}
-		}
-
-		public void checkClocks(int clock) {
-			if (clock >= REFRESH_INTERVAL) {
-				resetCounters();
-			}
-		}
 	}
 	// END OF TRR Definition
-
-
 }

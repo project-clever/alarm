@@ -21,7 +21,7 @@ learnerConfig:
   # Visualisation
   visualiseAllHypotheses: false
   visualiseLearntModel: true
-  dotOutputPath: "/home/uhac206/"
+  dotOutputPath: "~"
 
 adapterConfig:
   size: 0

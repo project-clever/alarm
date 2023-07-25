@@ -1,21 +1,27 @@
 learnerConfig:
-  randomSeed: 46346293
-  eqOracleMaxSteps: 100
+  # Learning algorithm
   algorithm: LSTAR
+
+  # Oracle parameters
+  randomSeed: 46346293
+  runsPerQuery: 10
+  eqOracle: RANDOM_WALK
+  samplingThreshold: 0.8
+  eqOracleMaxSteps: 100
+
+  # Input alphabet parameters
   minRow: 0
-  maxRow: 10
+  maxRow: 1
   readCounts:
     - 1
-    - 5
-    - 10
   bitFlips:
     - 1
-    - 10
-    - 100
-  outputAlphabet:
-    - FLIP
-    - NOFLIP
-    - ECC
-    - TRR
+
+
+  # Visualisation
+  visualiseAllHypotheses: false
+  visualiseLearntModel: true
+  dotOutputPath: "/home/uhac206/"
+
 adapterConfig:
   size: 0

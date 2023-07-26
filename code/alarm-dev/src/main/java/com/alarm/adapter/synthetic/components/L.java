@@ -19,15 +19,6 @@ public class L extends Loc<Integer> {
 
 
     @Override
-    public boolean equals(Object loc) {
-        if (loc instanceof L) {
-            L s = (L) loc;
-            return Objects.equals(this.getValue(), s.getValue());
-        }
-        return false;
-    }
-
-    @Override
     public int hashCode() {
         return (41 * (41 + this.getValue()) + getValue());
     }

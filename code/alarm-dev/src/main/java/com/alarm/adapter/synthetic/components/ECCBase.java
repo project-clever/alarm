@@ -26,7 +26,7 @@ public abstract class ECCBase<V extends Loc<?>>{
      * @throws ECCCorrectionException If an error is detected and not correctable by ECC.
      * @throws ECCDetectionException If an error arises while detecting by ECC.
      */
-    public abstract boolean validate(V loc, Mem mem) throws ECCCorrectionException, ECCDetectionException;
+    public abstract boolean validate(V loc, Memory<V> mem) throws ECCCorrectionException, ECCDetectionException;
 
     /**
      * Validates the ECC data for all Locations in the context of the given Mem object.

@@ -8,13 +8,13 @@ import java.util.HashSet;
 
 /**
  * Abstract representation of Generic Memory
- * @param <T> Type of stored Locations
+ * @param <V> The type of Location to be used as keys in map, must extend the abstract class Loc.
  */
-public abstract class Memory<T extends Comparable<T>> {
+public abstract class Memory<V extends Loc<?>> {
 
     public static final int[] FLIP_BITS = { 0, 1, 3, 7, 15, 31, 63, 127, 255, 511, 1023 }; //Kept from Learner as reference
 
-    public HashMap<Loc<T>, Integer> map;
+    public HashMap<V, Integer> map;
 
     public final int BLAST_RADIUS = 1; //default value
 
@@ -22,7 +22,7 @@ public abstract class Memory<T extends Comparable<T>> {
         map = new HashMap<>();
     }
 
-    public Memory(HashMap<Loc<T>, Integer> map){
+    public Memory(HashMap<V, Integer> map){
         this.map = map;
     }
 
@@ -32,7 +32,7 @@ public abstract class Memory<T extends Comparable<T>> {
      * @param loc The key for which the integer value is read.
      * @return The integer value associated with the key {@code loc}
      */
-    public int read(Loc<T> loc) {
+    public int read(V loc) {
         return this.map.get(loc);
     }
 
@@ -44,7 +44,7 @@ public abstract class Memory<T extends Comparable<T>> {
      * @param loc The key to which the integer value is written.
      * @param n   The integer value to be written to the map.
      */
-    public void write(Loc<T> loc, int n) {
+    public void write(V loc, int n) {
         if (loc == null)
             return;
         this.map.put(loc, n);
@@ -60,7 +60,7 @@ public abstract class Memory<T extends Comparable<T>> {
      * @param loc The key for which the bitwise flip operation is performed.
      * @param v   The index to access the bitmask from {@code MemoryModel.FLIP_BITS}.
      */
-    public void flip(Loc<T> loc, int v){
+    public void flip(V loc, int v){
         if (loc == null)
             return;
         int tmp = this.map.get(loc);
@@ -76,12 +76,5 @@ public abstract class Memory<T extends Comparable<T>> {
      * @return A HashSet of neighboring keys (Loc objects) within the blast radius of {@code loc}.
      *         An empty HashSet is returned if there are no neighbors or if the input {@code loc} is not present in the map.
      */
-    public HashSet<Loc<T>> neighbours(Loc<T> loc){
-        HashSet<Loc<T>> out = new HashSet<>();
-        for (Loc<T> l : this.map.keySet()) {
-            if (loc.distance(l) <= BLAST_RADIUS && loc.distance(l) > 0)
-                out.add(l);
-        }
-        return out;
-    }
+    public abstract HashSet<V> neighbours(V loc);
 }

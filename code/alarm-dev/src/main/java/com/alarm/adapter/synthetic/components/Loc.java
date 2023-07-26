@@ -1,5 +1,6 @@
 package com.alarm.adapter.synthetic.components;
 
+import java.util.Objects;
 
 /**
  * Abstract class to represent a generic Location.
@@ -32,8 +33,19 @@ public abstract class Loc<T extends Comparable<T>> {
         }
     }
 
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null || getClass() != obj.getClass())
+            return false;
+        Loc<?> other = (Loc<?>) obj;
+        return Objects.equals(location, other.location);
+    }
+
     /**
-     * Abstract method to calculate the distance between this Loc and another Loc given as a parameter.
+     * Method to calculate the distance between this Loc and another Loc given as a parameter.
      *
      * @param otherLocation The Loc we need to check the distance from.
      * @return An integer representing the distance between the two Loc objects.

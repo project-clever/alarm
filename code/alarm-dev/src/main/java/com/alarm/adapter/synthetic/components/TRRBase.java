@@ -3,7 +3,7 @@ package com.alarm.adapter.synthetic.components;
 import java.util.HashMap;
 
 /**
- * An abstract class representing a Time-Restricted Refresh (TRR) base for a specific type of Location.
+ * An abstract class representing a Target-Row Refresh (TRR) base for a specific type of Location.
  * It provides common functionalities related to TRR for different subclasses extending this class.
  *
  * @param <V> The type of Location to be used as keys in the TRR map, must extend the abstract class Loc.

@@ -1,7 +1,5 @@
 package com.alarm.adapter.synthetic.components;
 
-import com.alarm.adapter.synthetic.MemoryModel;
-
 import java.util.HashMap;
 
 /**
@@ -12,7 +10,7 @@ import java.util.HashMap;
  */
 public abstract class TRRBase<V extends Loc<?>> {
 
-    public final int REFRESH_INTERVAL= MemoryModel.REFRESH_INTERVAL;
+    public final int REFRESH_INTERVAL= 6500; //default value
 
     protected final int counters;
 
@@ -25,8 +23,8 @@ public abstract class TRRBase<V extends Loc<?>> {
      * Initialises the TRR counters, radius and the map.
      */
     public TRRBase() {
-        counters = MemoryModel.TRR_COUNTERS;
-        radius = MemoryModel.TRR_RADIUS;
+        counters = 1; //default value
+        radius = 1; //default value
         map = new HashMap<>();
     }
 

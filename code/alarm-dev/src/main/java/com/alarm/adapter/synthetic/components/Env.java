@@ -1,22 +1,23 @@
 package com.alarm.adapter.synthetic.components;
 
-import com.alarm.adapter.synthetic.MemoryModel;
-
 import java.util.HashMap;
 
 /**
  * Environment Definition
  */
-public class Env {
+public class Env <V extends Loc<?>>{
+
+    public final int REFRESH_INTERVAL = 6500; //Default value
+
     public int clocks;
-    public CountRowVars counter;
+    public CountRowVars<V> counter;
 
     public Env() {
         this.clocks = 0;
-        this.counter = new CountRowVars();
+        this.counter = new CountRowVars<>();
     }
 
-    public Env(int clocks, CountRowVars counter) {
+    public Env(int clocks, CountRowVars<V> counter) {
         this.clocks = clocks;
         this.counter = counter;
     }
@@ -24,13 +25,13 @@ public class Env {
     public void checkClocks() {
         this.clocks = this.clocks + 1;
 
-        if (this.clocks >= MemoryModel.REFRESH_INTERVAL) {
+        if (this.clocks >= REFRESH_INTERVAL) {
             this.clocks = 1;
             this.resetCounters();
         }
     }
 
-    public void tickCounter(Loc loc, int v) {
+    public void tickCounter(V loc, int v) {
         if (this.counter.map.containsKey(loc)) {
             int tmp = this.counter.map.get(loc);
             this.counter.map.put(loc, tmp + v);
@@ -39,27 +40,25 @@ public class Env {
         }
     }
 
-    public void resetCounter(Loc loc, int v) {
+    public void resetCounter(V loc, int v) {
         this.counter.map.put(loc, v);
     }
 
     public void resetCounters() {
-        for (Loc loc : this.counter.map.keySet()) {
-            resetCounter(loc, 0);
-        }
+        counter.map.forEach(this::resetCounter);
     }
 
     /**
      * Row Counter Definition
      */
-    public static class CountRowVars {
-        public HashMap<Loc, Integer> map;
+    public static class CountRowVars <V extends Loc<?>>{
+        public HashMap<V, Integer> map;
 
         public CountRowVars() {
-            this.map = new HashMap<Loc, Integer>();
+            this.map = new HashMap<>();
         }
 
-        public CountRowVars(HashMap<Loc, Integer> map) {
+        public CountRowVars(HashMap<V, Integer> map) {
             this.map = map;
         }
     }

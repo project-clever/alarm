@@ -1,7 +1,5 @@
 package com.alarm.adapter.synthetic.components;
 
-import com.alarm.adapter.synthetic.MemoryModel;
-
 import java.util.HashMap;
 import java.util.HashSet;
 
@@ -13,7 +11,12 @@ import java.util.HashSet;
  * @param <T> Type of stored Locations
  */
 public abstract class Memory<T extends Comparable<T>> {
+
+    public static final int[] FLIP_BITS = { 0, 1, 3, 7, 15, 31, 63, 127, 255, 511, 1023 }; //Kept from Learner as reference
+
     public HashMap<Loc<T>, Integer> map;
+
+    public final int BLAST_RADIUS = 1; //default value
 
     public Memory(){
         map = new HashMap<>();
@@ -61,7 +64,7 @@ public abstract class Memory<T extends Comparable<T>> {
         if (loc == null)
             return;
         int tmp = this.map.get(loc);
-        this.map.put(loc, tmp ^ MemoryModel.FLIP_BITS[v]);
+        this.map.put(loc, tmp ^ FLIP_BITS[v]);
     }
 
     /**
@@ -76,7 +79,7 @@ public abstract class Memory<T extends Comparable<T>> {
     public HashSet<Loc<T>> neighbours(Loc<T> loc){
         HashSet<Loc<T>> out = new HashSet<>();
         for (Loc<T> l : this.map.keySet()) {
-            if (loc.distance(l) <= MemoryModel.BLAST_RADIUS && loc.distance(l) > 0)
+            if (loc.distance(l) <= BLAST_RADIUS && loc.distance(l) > 0)
                 out.add(l);
         }
         return out;

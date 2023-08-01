@@ -1,5 +1,7 @@
 package com.alarm.adapter.synthetic.components;
 
+import com.alarm.adapter.synthetic.extendedcls.L;
+
 import java.util.Objects;
 
 /**
@@ -25,9 +27,8 @@ public abstract class Loc<T extends Comparable<T>> {
     }
 
     public String eval(Loc<?> l) throws IllegalArgumentException {
-        if (l instanceof L) {
-            L s = (L) l;
-            return "Loc" + s.getValue();
+        if (l != null) {
+            return "Loc" + l.getValue();
         } else {
             throw new IllegalArgumentException("Invalid Loc!");
         }

@@ -17,13 +17,16 @@ public abstract class Memory<V extends Loc<?>> {
     public HashMap<V, Integer> map;
 
     public final int BLAST_RADIUS = 1; //default value
+    public final int map_size;
 
-    public Memory(){
-        map = new HashMap<>();
+    public Memory(int size){
+        map = new HashMap<>(size);
+        map_size = size;
     }
 
     public Memory(HashMap<V, Integer> map){
         this.map = map;
+        map_size = map.size();
     }
 
     /**

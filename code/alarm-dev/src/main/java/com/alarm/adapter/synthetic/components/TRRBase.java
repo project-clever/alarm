@@ -1,5 +1,7 @@
 package com.alarm.adapter.synthetic.components;
 
+import com.alarm.adapter.synthetic.extendedcls.L;
+
 import java.util.HashMap;
 
 /**
@@ -10,7 +12,7 @@ import java.util.HashMap;
  */
 public abstract class TRRBase<V extends Loc<?>> {
 
-    public final int REFRESH_INTERVAL= 6500; //default value
+    public final int REFRESH_INTERVAL;
 
     protected final int counters;
 
@@ -20,11 +22,12 @@ public abstract class TRRBase<V extends Loc<?>> {
 
     /**
      * Default constructor for TRRBase.
-     * Initialises the TRR counters, radius and the map.
+     * Initialises the TRR counters, radius, the map and refresh rate with default data.
      */
-    public TRRBase() {
-        counters = 1; //default value
-        radius = 1; //default value
+    protected TRRBase() {
+        counters = 1;
+        radius = 1;
+        REFRESH_INTERVAL= 6500;
         map = new HashMap<>();
     }
 
@@ -35,10 +38,11 @@ public abstract class TRRBase<V extends Loc<?>> {
      * @param map The HashMap representing the TRR map with Location objects as keys and counter values as values.
      * @param radius The radius for the TRR.
      */
-    public TRRBase(int counters, HashMap<V, Integer> map, int radius) {
+    protected TRRBase(int counters, HashMap<V, Integer> map, int radius, int refreshInterval) {
         this.counters = counters;
         this.radius = radius;
         this.map = map;
+        REFRESH_INTERVAL = refreshInterval;
     }
 
     /**
@@ -93,10 +97,6 @@ public abstract class TRRBase<V extends Loc<?>> {
      * @param n The number to use for the modulo operation.
      * @return The calculated Location code as an integer.
      */
-    protected int calLocCode(L loc, int n) {
-        int v = loc.getValue();
-        int m = 16; //modulo set value
-        return (v % m) ^ (n % m);
-    }
+    public abstract int calLocCode(V loc, int n);
 }
 

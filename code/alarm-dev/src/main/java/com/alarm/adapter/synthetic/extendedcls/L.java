@@ -1,4 +1,6 @@
-package com.alarm.adapter.synthetic.components;
+package com.alarm.adapter.synthetic.extendedcls;
+
+import com.alarm.adapter.synthetic.components.Loc;
 
 import java.util.Objects;
 
@@ -11,6 +13,11 @@ public class L extends Loc<Integer> {
     public L(int loc) {
         super(loc);
     }
+
+    public L(Integer loc) {
+        super(loc);
+    }
+
 
     @Override
     public String toString() {

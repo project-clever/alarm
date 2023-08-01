@@ -1,5 +1,6 @@
 package com.alarm.adapter.synthetic.components;
 
+import com.alarm.adapter.synthetic.extendedcls.Mem;
 import com.alarm.exceptions.ECCCorrectionException;
 import com.alarm.exceptions.ECCDetectionException;
 

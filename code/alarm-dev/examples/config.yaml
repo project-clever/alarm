@@ -7,13 +7,14 @@ learnerConfig:
   runsPerQuery: 10
   eqOracle: RANDOM_WALK
   samplingThreshold: 0.8
-  eqOracleMaxSteps: 100
+  eqOracleMaxSteps: 5
 
   # Input alphabet parameters
   minRow: 0
-  maxRow: 1
+  maxRow: 4
   readCounts:
-    - 1
+    - 1000
+    - 10000
   bitFlips:
     - 1
 
@@ -21,7 +22,7 @@ learnerConfig:
   # Visualisation
   visualiseAllHypotheses: false
   visualiseLearntModel: true
-  dotOutputPath: "~"
+  dotOutputPath: "/home/uhac206/"
 
 adapterConfig:
   size: 0

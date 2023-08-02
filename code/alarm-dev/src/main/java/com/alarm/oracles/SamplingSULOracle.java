@@ -44,7 +44,7 @@ public class SamplingSULOracle<I, O> implements MealyMembershipOracle<I, O> {
         this.sulOracle = sulOracle;
         this.runs = runs;
         this.probabilisticThreshold = probabilisticThreshold;
-        this.log = log;
+        this.log = new PrintWriter(PrintWriter.nullWriter());
     }
 
     @Override
@@ -110,6 +110,7 @@ public class SamplingSULOracle<I, O> implements MealyMembershipOracle<I, O> {
         // we get here after exhausting the number of tests, without having
         // found an answer that is acceptable
         // **For now return the next best value**
+        // System.out.println(frequencyMap.get(mostCommonOutput) / runs);
         return mostCommonOutput;
 
     }

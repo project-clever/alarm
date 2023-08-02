@@ -1,4 +1,4 @@
-package com.alarm.tool;
+package com.alarm.alphabets;
 
 // Class representing an input alphabet symbol
 public class HammerAction {

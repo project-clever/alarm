@@ -2,12 +2,13 @@ package com.alarm.tool;
 
 // import de.learnlib.algorithms.adt.learner.ADTLearnerState;
 
+import com.alarm.alphabets.HammerAction;
+import com.alarm.alphabets.HammerResult;
 import com.alarm.config.AdapterConfig;
 import com.alarm.config.Config;
 import com.alarm.config.LearnerConfig;
 import com.alarm.examples.SimpleDRAMAdaptor;
 import com.alarm.oracles.*;
-import de.learnlib.acex.AcexAnalyzer;
 import de.learnlib.acex.analyzers.AcexAnalyzers;
 import de.learnlib.algorithms.lstar.ce.ObservationTableCEXHandlers;
 import de.learnlib.algorithms.lstar.closing.ClosingStrategies;
@@ -19,7 +20,6 @@ import de.learnlib.api.logging.LearnLogger;
 import de.learnlib.api.oracle.EquivalenceOracle.MealyEquivalenceOracle;
 import de.learnlib.api.oracle.MembershipOracle.MealyMembershipOracle;
 import de.learnlib.api.query.DefaultQuery;
-import de.learnlib.filter.cache.mealy.MealyCaches;
 import de.learnlib.filter.statistic.Counter;
 import de.learnlib.filter.statistic.oracle.MealyCounterOracle;
 import de.learnlib.oracle.equivalence.MealyRandomWpMethodEQOracle;
@@ -28,8 +28,6 @@ import de.learnlib.oracle.equivalence.mealy.RandomWalkEQOracle;
 import de.learnlib.util.mealy.MealyUtil;
 import net.automatalib.automata.transducers.MealyMachine;
 import net.automatalib.automata.transducers.impl.compact.CompactMealy;
-import net.automatalib.commons.util.mappings.Mapping;
-import net.automatalib.commons.util.mappings.Mappings;
 import net.automatalib.serialization.dot.GraphDOT;
 import net.automatalib.util.automata.builders.AutomatonBuilders;
 import net.automatalib.visualization.Visualization;
@@ -56,12 +54,14 @@ import java.util.*;
 //          - In reality, flips are highly likely once a certain threshold (rowhammer threshold) has been reached;
 //            However: what if we need to set a specific number of flips? Probability will be related to readcount
 //      [X] DRAMAdapter (implementing SUL) to communicate to concrete DRAM
-//          [X} Start implementing Adapter for SyntheticDRAM
+//          [X] Start implementing Adapter for SyntheticDRAM
 //          - Adapter initialises memory depending on the number of intended bit flips
 //            (e.g., pattern has three 1s if we want to flip 3 bits)
+//              - This is hard: typically one uses modular patterns, or "striped" patterns (inverted every n rows)
+//                Rowhammer tester heavily relies on those.
 //          - Handle true/anti-cells: papers claim that each row is made of the same type of cells
 //              - Modify script to show direction of bit flips (1->0 or 0->1)
-//       - Caching: do not re-run tests for prefixes if answer if known
+//       [X] Caching: do not re-run tests for prefixes if answer if known
 //  - How to implement SUL? Docker container or regular Java wrapper?
 //      - Advantage of Docker: SUL can be implemented in any language, it can run daemon etc -- useful for rowhammer-tester?
 //
@@ -190,13 +190,9 @@ public class Main {
         TestRunnerSULOracle<HammerAction, HammerResult> dramSULOracle = new TestRunnerSULOracle<>(dramSUL);
 
         // Add sampling oracle
-        SamplingSULOracle<HammerAction, HammerResult> samplingSULOracle = null;
-        try {
-            samplingSULOracle =
+        SamplingSULOracle<HammerAction, HammerResult> samplingSULOracle =
                     new SamplingSULOracle<>(learnerConfig.runsPerQuery,
-                            learnerConfig.samplingThreshold, dramSULOracle, new PrintWriter("/dev/null"));
-        }
-        catch(IOException e) {}
+                            learnerConfig.samplingThreshold, dramSULOracle, new PrintWriter(System.out));
         // MealyMembershipOracle<HammerAction, HammerResult> samplingSULOracle = dramSULOracle;
 
         // Introduce counter for SUL queries

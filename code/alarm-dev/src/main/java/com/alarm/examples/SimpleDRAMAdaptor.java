@@ -1,7 +1,7 @@
 package com.alarm.examples;
 
-import com.alarm.tool.HammerAction;
-import com.alarm.tool.HammerResult;
+import com.alarm.alphabets.HammerAction;
+import com.alarm.alphabets.HammerResult;
 import com.alarm.tool.TestRunner;
 import net.automatalib.words.Word;
 
@@ -9,7 +9,7 @@ import java.util.*;
 
 public class SimpleDRAMAdaptor implements TestRunner<HammerAction, HammerResult> {
     private HashSet<Word<HammerAction>> tests = new HashSet<>();
-    private final int rowhammerThreshold = 2;
+    private final int rowhammerThreshold = 18000;
     private final int blastRadius = 1;
     private final double probabilityIncrement = 0.1;
     private final int numRows = 5;
@@ -51,14 +51,14 @@ public class SimpleDRAMAdaptor implements TestRunner<HammerAction, HammerResult>
 
     private double computeFlipProbability(int attacks) {
         // Using sigmoid function with bias
-        // return 1 / ( 1 + Math.exp(-attacks + rowhammerThreshold));
+        return 1 / ( 1 + Math.exp(-attacks + rowhammerThreshold));
 
         // piece-wise function
         //  if (attacks >= rowhammerThreshold) return 1.0;
         //  return 0.0;
 
         // Steep exponential
-        return Math.min(Math.exp(10 * attacks - 30), 1);
+        // return Math.min(Math.exp(10 * attacks - 30), 1);
     }
 
     private HammerResult generateOutcome(int row) {

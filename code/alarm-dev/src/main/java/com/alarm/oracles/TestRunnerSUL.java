@@ -59,7 +59,7 @@ public class TestRunnerSUL<I,O> implements SUL<I, O> {
     @Override
     public O step(I in) {
         Word<I> test = testPrefix.append(in);
-        System.out.println("Running: " + test);
+        // System.out.println("Running: " + test);
 
         testRunner.setup();
         O result = testRunner.runTest(test);

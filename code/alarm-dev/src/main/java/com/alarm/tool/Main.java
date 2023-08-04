@@ -2,6 +2,7 @@ package com.alarm.tool;
 
 // import de.learnlib.algorithms.adt.learner.ADTLearnerState;
 
+import com.alarm.adapter.zcu104.ZCU104Adapter;
 import com.alarm.alphabets.HammerAction;
 import com.alarm.alphabets.HammerResult;
 import com.alarm.config.AdapterConfig;
@@ -90,8 +91,6 @@ public class Main {
 
         try {
             loadConfig(args[0]);
-            runLearner();
-
             // System.out.println(alarmConfig.learnerConfig.randomSeed);
         }
         catch(IOException e) {
@@ -99,8 +98,11 @@ public class Main {
             printUsage();
             System.exit(-1);
         }
+
+        try { runLearner(); }
         catch(Exception e) {
             System.err.println("Error whilst learning.");
+            // logger.error(e.getMessage());
             e.printStackTrace();
             System.exit(-1);
         }
@@ -110,7 +112,8 @@ public class Main {
         Alphabet<HammerAction> inputAlphabet = buildInputAlphabet(learnerConfig);
 
 
-        SimpleDRAMAdaptor adaptor = new SimpleDRAMAdaptor();
+        ZCU104Adapter adaptor = new ZCU104Adapter();
+                //new SimpleDRAMAdaptor();
         TestRunnerSUL<HammerAction, HammerResult> dramSUL = new TestRunnerSUL<>(adaptor);
 
         logger.logEvent("Building query oracle...");
@@ -178,7 +181,7 @@ public class Main {
         for (int readCount: config.readCounts)
             for (int row = config.minRow; row <= config.maxRow; row++)
                 for (int bitFlip: config.bitFlips)
-                    hammerSymbols.add(new HammerAction(readCount, row, bitFlip));
+                    hammerSymbols.add(new HammerAction(row, readCount, bitFlip));
 
         return Alphabets.fromList(hammerSymbols);
     }
@@ -200,7 +203,7 @@ public class Main {
                 new MealyCounterOracle<>(samplingSULOracle , "Queries to SUL");
         queryCounter = counterOracle.getCounter();
 
-        // Add cache
+        // Add ObservationTree-based cache such that HammerResult.FLIP always leads to a sink
         return new CachingSULOracle<>(counterOracle, new ObservationTree<HammerAction, HammerResult>(), HammerResult.FLIP);
     }
 

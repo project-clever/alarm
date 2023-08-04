@@ -7,9 +7,9 @@ public class HammerAction {
     private final int row;
     private final int bitFlips;
 
-    public HammerAction(int readCount, int row, int bitFlips) {
-        this.readCount = readCount;
+    public HammerAction(int row, int readCount, int bitFlips) {
         this.row = row;
+        this.readCount = readCount;
         this.bitFlips = bitFlips;
     }
 
@@ -47,6 +47,7 @@ public class HammerAction {
     }
 
     public String toString() {
-        return "HAMMER(read: " + readCount + ", row: " + row + ", bitflips: " + bitFlips + ")";
+        //return "HAMMER(read: " + readCount + ", row: " + row + ", bitflips: " + bitFlips + ")";
+        return "HAMMER(" + row + "," + readCount + "," + bitFlips + ")";
     }
 }

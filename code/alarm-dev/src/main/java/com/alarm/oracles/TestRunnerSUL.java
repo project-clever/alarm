@@ -1,6 +1,7 @@
 package com.alarm.oracles;
 
 import com.alarm.tool.TestRunner;
+import com.alarm.utils.TestRunnerException;
 import de.learnlib.api.SUL;
 import net.automatalib.words.Word;
 
@@ -62,8 +63,13 @@ public class TestRunnerSUL<I,O> implements SUL<I, O> {
         // System.out.println("Running: " + test);
 
         testRunner.setup();
-        O result = testRunner.runTest(test);
-        testRunner.cleanup();
+        O result;
+
+        try { result = testRunner.runTest(test);}
+        catch (TestRunnerException e) { result = null;}
+        finally {
+            testRunner.cleanup();
+        }
 
         testPrefix = test;
         return result;

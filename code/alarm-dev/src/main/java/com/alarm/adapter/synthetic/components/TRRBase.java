@@ -1,7 +1,5 @@
 package com.alarm.adapter.synthetic.components;
 
-import com.alarm.adapter.synthetic.extendedcls.L;
-
 import java.util.HashMap;
 
 /**
@@ -25,10 +23,18 @@ public abstract class TRRBase<V extends Loc<?>> {
      * Initialises the TRR counters, radius, the map and refresh rate with default data.
      */
     protected TRRBase() {
-        counters = 1;
-        radius = 1;
-        REFRESH_INTERVAL= 6500;
-        map = new HashMap<>();
+        this(1,new HashMap<>(), 1, 6_500);
+    }
+
+    /**
+     * Constructor for TRRBase with custom counters, and radius.
+     *
+     * @param counters The number of counters for the TRR.
+     * @param radius The radius for the TRR.
+     * @param refreshInterval The time between two regular refreshes.
+     */
+    protected TRRBase(int counters, int radius, int refreshInterval){
+        this(counters, new HashMap<>(), radius, refreshInterval);
     }
 
     /**
@@ -37,6 +43,7 @@ public abstract class TRRBase<V extends Loc<?>> {
      * @param counters The number of counters for the TRR.
      * @param map The HashMap representing the TRR map with Location objects as keys and counter values as values.
      * @param radius The radius for the TRR.
+     * @param refreshInterval The time between two regular refreshes.
      */
     protected TRRBase(int counters, HashMap<V, Integer> map, int radius, int refreshInterval) {
         this.counters = counters;
@@ -68,8 +75,8 @@ public abstract class TRRBase<V extends Loc<?>> {
      * @param loc The Location for which to reset the counter.
      */
     public void resetCounter(V loc){
-        if (this.map.containsKey(loc)) {
-            this.map.put(loc, 0);
+        if (map.containsKey(loc)) {
+            map.put(loc, 0);
         }
     }
 
@@ -91,7 +98,7 @@ public abstract class TRRBase<V extends Loc<?>> {
     }
 
     /**
-     * Calculates the Location code using the modulo operation for Time-Restricted Refresh (TRR).
+     * Calculates the Location code for Time-Restricted Refresh (TRR).
      *
      * @param loc The Location for which to calculate the code.
      * @param n The number to use for the modulo operation.

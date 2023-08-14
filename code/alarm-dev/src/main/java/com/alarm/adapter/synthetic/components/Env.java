@@ -11,9 +11,9 @@ import java.util.HashMap;
 public class Env<V extends Loc<?>> {
 
     /**
-     * The default value for the refresh interval.
+     * The time between two regular refreshes
      */
-    public final int REFRESH_INTERVAL = 6500;
+    public final int REFRESH_INTERVAL;
 
     /**
      * The current number of clocks.
@@ -26,23 +26,24 @@ public class Env<V extends Loc<?>> {
     public CountRowVars<V> counter;
 
     /**
-     * Constructor to create an environment with the specified size.
+     * Constructor to create an environment with the specified refresh interval.
      *
-     * @param size The size of the environment, used to initialize the row counter.
+     * @param refreshInterval The time between two regular refreshes.
      */
-    public Env(int size) {
-        this.clocks = 0;
-        this.counter = new CountRowVars<>(size);
+    public Env(int refreshInterval) {
+        this(0, refreshInterval, new CountRowVars<>());
     }
 
     /**
      * Constructor to create an environment with the specified clocks and row counter.
      *
      * @param clocks The current number of clocks.
+     * @param refreshInterval The time between two regular refreshes
      * @param counter The row counter containing counters associated with each location.
      */
-    public Env(int clocks, CountRowVars<V> counter) {
+    public Env(int clocks, int refreshInterval, CountRowVars<V> counter) {
         this.clocks = clocks;
+        REFRESH_INTERVAL = refreshInterval;
         this.counter = counter;
     }
 
@@ -104,11 +105,9 @@ public class Env<V extends Loc<?>> {
 
         /**
          * Constructor to create a row counter with the specified size.
-         *
-         * @param size The size of the row counter map.
          */
-        public CountRowVars(int size) {
-            map = new HashMap<>(size);
+        public CountRowVars() {
+            map = new HashMap<>();
         }
 
         /**

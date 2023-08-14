@@ -2,19 +2,17 @@ package com.alarm.adapter.synthetic.extendedcls;
 
 import com.alarm.adapter.synthetic.components.Loc;
 
-import java.util.Objects;
-
 /**
  * A concrete class representing a specific type of Location, where the location value is of type Integer.
  * Extends the abstract class Loc<Integer>.
  */
-public class L extends Loc<Integer> {
+public class LocIntAddress extends Loc<Integer> {
 
-    public L(int loc) {
+    public LocIntAddress(int loc) {
         super(loc);
     }
 
-    public L(Integer loc) {
+    public LocIntAddress(Integer loc) {
         super(loc);
     }
 

@@ -13,17 +13,23 @@ import java.util.Random;
  * It provides read and write operations on memory locations with TRR and ECC checks and supports various memory-related configurations.
  */
 public class MemSystem{
-    private ECCIntegerAddress ECC; //Optional
-    private TRRIntegerAddress TRR; //Optional
+    private ECCBase<LocIntAddress> ECC; //Optional
+    private TRRBase<LocIntAddress> TRR; //Optional
 
-    private EnvIntegerAddress ENV;
-    private Mem MEM;
+    private EnvIntAddress ENV;
+    private MemIntAddress MEM;
 
     //Data to be loaded from Config class
     public final int TRR_THRESHOLD;
     public final int TRR_COUNTERS;
+
+    /** The minimal number of accesses between two refreshes to rows in the blast-radius, before a flip can happen*/
     public final int RH_THRESHOLD;
+
+    /** The time between two regular refreshes (i.e., not in reaction to a potential Row-hammer attack)*/
     public final int REFRESH_INTERVAL;
+
+    /** The maximum distance between attacker row and victim row that can make bit flips happen.*/
     public final int BLAST_RADIUS;
     public final int  TRR_RADIUS;
     public final boolean ECC_STATUS;
@@ -41,23 +47,23 @@ public class MemSystem{
         TRR_RADIUS = trrRadius;
         ECC_STATUS = eccStatus;
 
-        MEM = new Mem(memSize);
-        ENV = new EnvIntegerAddress(memSize);
+        MEM = new MemIntAddress(memSize);
+        ENV = new EnvIntAddress(memSize, refreshInterval);
 
     }
 
-    public MemSystem withTRR(TRRBase<L> trrPolicy)throws IllegalArgumentException{
+    public MemSystem withTRR(TRRBase<LocIntAddress> trrPolicy)throws IllegalArgumentException{
         if (trrPolicy != null) {
-            TRR = (TRRIntegerAddress) trrPolicy;
+            TRR = trrPolicy;
         } else {
             throw new IllegalArgumentException("Parameter can't be found in TrrPolicies or parameter may be Null.");
         }
         return this;
     }
 
-    public MemSystem withECC(ECCBase<L> eccSchema) throws IllegalArgumentException{
+    public MemSystem withECC(ECCBase<LocIntAddress> eccSchema) throws IllegalArgumentException{
         if (eccSchema != null) {
-            ECC = (ECCIntegerAddress) eccSchema;
+            ECC = eccSchema;
         } else {
             throw new IllegalArgumentException("Parameter can't be found in EccSchemas or parameter may be Null.");
         }
@@ -72,7 +78,7 @@ public class MemSystem{
      * @return The data read from the memory location.
      * @throws TRRException If a TRR-related exception occurs during the read operation.
      */
-    public int read(L loc, int flip_v) throws TRRException{
+    public int read(LocIntAddress loc, int flip_v) throws TRRException{
         clock(loc, flip_v);
         ENV.resetCounter(loc, 0);
         if (TRR != null) TRR.resetCounter(loc);
@@ -87,7 +93,7 @@ public class MemSystem{
      * @param flip_v The flip_v value used during ECC operations.
      * @throws TRRException If a TRR-related exception occurs during the write operation.
      */
-    public void write(L loc, int v, int flip_v) throws TRRException{
+    public void write(LocIntAddress loc, int v, int flip_v) throws TRRException{
         clock(loc, flip_v);
         MEM.write(loc, v);
         ENV.resetCounter(loc, 0);
@@ -103,18 +109,18 @@ public class MemSystem{
      * @param flip_v The flip_v value used during ECC operations.
      * @throws TRRException If a TRR-related exception occurs during the clocking operation.
      */
-    public void clock(L loc, int flip_v) throws TRRException{
+    public void clock(LocIntAddress loc, int flip_v) throws TRRException{
         if (TRR != null) TRR.checkClocks(ENV.clocks);
         ENV.checkClocks();
-        for (L l : MEM.neighbours(loc)) {
+        for (LocIntAddress l : MEM.neighbours(loc)) {
             if(TRR != null) {
                 if (TRR.checkSingleCounter(l)) {
                     int attenuation_factor = BLAST_RADIUS - loc.distance(l) + 1;
                     ENV.tickCounter(l, attenuation_factor);
-                    if (TRR != null) TRR.tickCounter(l, attenuation_factor);
+                    TRR.tickCounter(l, attenuation_factor);
                 } else {
                     ENV.resetCounter(l, 0);
-                    if (TRR != null) TRR.resetCounter(l);
+                    TRR.resetCounter(l);
                     read(l, flip_v);
                     throw new TRRException();
                 }
@@ -133,19 +139,19 @@ public class MemSystem{
     }
 
     //Public Getters
-    public ECCBase<L> getECC(){
+    public ECCBase<LocIntAddress> getECC(){
         return ECC;
     }
 
-    public TRRBase<L> getTRR(){
+    public TRRBase<LocIntAddress> getTRR(){
         return TRR;
     }
 
-    public Mem getMEM() {
+    public MemIntAddress getMEM() {
         return MEM;
     }
 
-    public Env<L> getENV() {
+    public Env<LocIntAddress> getENV() {
         return ENV;
     }
 }

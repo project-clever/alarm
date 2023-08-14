@@ -1,6 +1,5 @@
 package com.alarm.adapter.synthetic.components;
 
-import com.alarm.adapter.synthetic.extendedcls.Mem;
 import com.alarm.exceptions.ECCCorrectionException;
 import com.alarm.exceptions.ECCDetectionException;
 
@@ -37,7 +36,7 @@ public abstract class ECCBase<V extends Loc<?>>{
      * @throws ECCCorrectionException If an error is detected and not correctable by ECC.
      * @throws ECCDetectionException If an error arises while detecting by ECC.
      */
-    public abstract boolean validateAll(Mem mem) throws ECCCorrectionException, ECCDetectionException;
+    public abstract boolean validateAll(Memory<V> mem) throws ECCCorrectionException, ECCDetectionException;
 
     /**
      * Tweaks the ECC data for the specified Location at the given position with the provided value.

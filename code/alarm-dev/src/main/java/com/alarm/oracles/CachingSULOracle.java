@@ -1,6 +1,5 @@
 package com.alarm.oracles;
 
-import com.google.common.collect.Sets;
 import de.learnlib.api.oracle.MembershipOracle;
 import de.learnlib.api.oracle.MembershipOracle.MealyMembershipOracle;
 import de.learnlib.api.query.Query;
@@ -10,7 +9,6 @@ import net.automatalib.words.Word;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.util.Collection;
-import java.util.HashSet;
 
 /**
  * This class is adapted from {@link SULOracle}. Unfortunately, the
@@ -26,21 +24,15 @@ import java.util.HashSet;
  *
  * @author Matteo Sammartino
  */
-public class CachingSULOracle<I, O> implements MealyMembershipOracle<I, O> {
+public class CachingSULOracle<I, O extends TerminatingSymbol> implements MealyMembershipOracle<I, O> {
 
     private ObservationTree<I, O> root;
 
     private MembershipOracle<I, Word<O>> sulOracle;
 
-
-    private HashSet<O> terminatingOutputs;
-
-    @SafeVarargs
-    public CachingSULOracle(MembershipOracle<I, Word<O>> sulOracle,
-            ObservationTree<I, O> cache, O... terminatingOutputs) {
+    public CachingSULOracle(MembershipOracle<I, Word<O>> sulOracle, ObservationTree<I, O> cache) {
         this.root = cache;
         this.sulOracle = sulOracle;
-        this.terminatingOutputs = Sets.newHashSet(terminatingOutputs);
     }
 
     @Override
@@ -72,29 +64,28 @@ public class CachingSULOracle<I, O> implements MealyMembershipOracle<I, O> {
     }
 
     @Nullable private Word<O> answerFromCache(Word<I> input) {
-        if (terminatingOutputs.isEmpty())
-            return root.answerQuery(input);
-        else {
-            Word<O> output = root.answerQuery(input, true);
-            if (output.length() < input.length()) {
-                if (output.isEmpty()) {
-                    return null;
-                } else {
-                    if (terminatingOutputs.contains(output.lastSymbol())) {
-                        Word<O> extendedOutput = output;
-                        while (extendedOutput.length() < input.length()) {
-                            extendedOutput = extendedOutput.append(output
-                                    .lastSymbol());
-                        }
-                        return extendedOutput;
-                    } else {
-                        // We only return the known output
-                        return output;
-                    }
-                }
+//        if (terminatingOutputs.isEmpty())
+//            return root.answerQuery(input);
+//        else {
+        Word<O> output = root.answerQuery(input, true);
+        if (output.length() < input.length()) {
+            if (output.isEmpty()) {
+                return null;
             } else {
-                return output;
+                if (output.lastSymbol().isTerminating()) {
+                    Word<O> extendedOutput = output;
+                    while (extendedOutput.length() < input.length()) {
+                        extendedOutput = extendedOutput.append(output
+                                .lastSymbol());
+                    }
+                    return extendedOutput;
+                } else {
+                    // We only return the known output
+                    return output;
+                }
             }
+        } else {
+            return output;
         }
     }
 

@@ -13,8 +13,7 @@ public class LearnerConfig {
     public double samplingThreshold = 0.6;
     public Algorithms algorithm = Algorithms.LSTAR;
     public EqOracle eqOracle = EqOracle.RANDOM_WALK;
-    public int minRow = 0;
-    public int maxRow = 10;
+    public List<Integer> aggressorRows = new ArrayList<>();
     public List<Integer> readCounts = new ArrayList<Integer>();
     public List<Integer> bitFlips = new ArrayList<Integer>();
     public boolean visualiseAllHypotheses;

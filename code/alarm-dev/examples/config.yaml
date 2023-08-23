@@ -4,23 +4,24 @@ learnerConfig:
 
   # Oracle parameters
   randomSeed: 46346293
-  runsPerQuery: 10
-  eqOracle: RANDOM_WALK
+  runsPerQuery: 5
+  eqOracle: WP_METHOD
   samplingThreshold: 0.8
-  eqOracleMaxSteps: 5
+  eqOracleMaxSteps: 1
 
   # Input alphabet parameters
-  minRow: 0
-  maxRow: 4
+  aggressorRows:
+    - 0
+    - 1
+    - 2
   readCounts:
-    - 1000
-    - 10000
+    - 50000
   bitFlips:
     - 1
 
 
   # Visualisation
-  visualiseAllHypotheses: false
+  visualiseAllHypotheses: true
   visualiseLearntModel: true
   dotOutputPath: "/home/uhac206/"
 

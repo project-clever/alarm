@@ -2,17 +2,18 @@ package com.alarm.adapter.zcu104;
 
 import com.alarm.alphabets.HammerAction;
 import com.alarm.alphabets.HammerResult;
+import com.alarm.alphabets.HammerRowsOutput;
 import com.alarm.tool.TestRunner;
 import com.alarm.utils.TestRunnerException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import net.automatalib.words.Word;
-import com.fasterxml.jackson.databind.*;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -21,7 +22,7 @@ import java.util.stream.Collectors;
 //       - Group tests to same row together, adding up their readcounts
 //       - Exploit symmetry? E.g.: [0 2] and [1 0] are the same: achievable by sorting?
 //       - Use cache to extract results for queries are the same up to the two preceding items?
-public class ZCU104Adapter implements TestRunner<HammerAction, HammerResult> {
+public class ZCU104Adapter implements TestRunner<HammerAction, HammerRowsOutput> {
     private final PrintWriter out;
     private final BufferedReader in;
 
@@ -44,7 +45,7 @@ public class ZCU104Adapter implements TestRunner<HammerAction, HammerResult> {
     }
 
     @Override
-    public HammerResult runTest(Word<HammerAction> test) throws TestRunnerException {
+    public HammerRowsOutput runTest(Word<HammerAction> test) throws TestRunnerException {
         String testString = test
                 .stream()
                 .map(HammerAction::toString)
@@ -52,7 +53,7 @@ public class ZCU104Adapter implements TestRunner<HammerAction, HammerResult> {
 
         System.out.println(testString);
         out.println(testString);
-        HammerResult response = null;
+        HammerRowsOutput response = null;
         try {
             String jsonResponse = in.readLine();
             System.out.println(jsonResponse);
@@ -65,14 +66,15 @@ public class ZCU104Adapter implements TestRunner<HammerAction, HammerResult> {
         return response;
     }
 
-    private HammerResult processJSONResponse(String response) throws IOException {
+    private HammerRowsOutput processJSONResponse(String response) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         Map<Integer, Integer> rowFlipsMap = objectMapper.readValue(response, new TypeReference<Map<Integer, Integer>>() {});
 
-        for (int row: rowFlipsMap.keySet()) {
-            if (rowFlipsMap.get(row) > 0) return HammerResult.FLIP;
+        if (!rowFlipsMap.isEmpty()) {
+            return new HammerRowsOutput(HammerResult.FLIP).withFlipsLocations(rowFlipsMap.keySet());
         }
-        return HammerResult.OK;
+
+        return new HammerRowsOutput(HammerResult.OK);
     }
 
     public static void main(String[] args) throws IOException {

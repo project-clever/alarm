@@ -1,13 +1,13 @@
 package com.alarm.examples;
 
-import com.alarm.alphabets.HammerAction;
-import com.alarm.alphabets.HammerResult;
+import com.alarm.alphabets.*;
+import com.alarm.alphabets.HammerProbabilisticOutput;
 import com.alarm.tool.TestRunner;
 import net.automatalib.words.Word;
 
 import java.util.*;
 
-public class SimpleDRAMAdaptor implements TestRunner<HammerAction, HammerResult> {
+public class SimpleDRAMAdaptor implements TestRunner<HammerAction, HammerOutput> {
     private HashSet<Word<HammerAction>> tests = new HashSet<>();
     private final int rowhammerThreshold = 18000;
     private final int blastRadius = 1;
@@ -61,13 +61,13 @@ public class SimpleDRAMAdaptor implements TestRunner<HammerAction, HammerResult>
         // return Math.min(Math.exp(10 * attacks - 30), 1);
     }
 
-    private HammerResult generateOutcome(int row) {
+    private HammerOutput generateOutcome(int row) {
         int flipSlots = (int) Math.floor(flipProbabilities.get(row) / probabilityIncrement);
         int totSlots = (int) ( 1 / probabilityIncrement );
-        HammerResult[] resSlots = new HammerResult[totSlots];
+        HammerOutput[] resSlots = new HammerOutput[totSlots];
 
-        Arrays.fill(resSlots, 0, flipSlots, HammerResult.FLIP);
-        Arrays.fill(resSlots, flipSlots, totSlots, HammerResult.OK);
+        Arrays.fill(resSlots, 0, flipSlots, new HammerOutput(HammerResult.FLIP));
+        Arrays.fill(resSlots, flipSlots, totSlots, new HammerOutput(HammerResult.OK));
         // System.out.println(Arrays.toString(resSlots));
 
         int rndSlot = rnd.nextInt(totSlots);
@@ -75,7 +75,7 @@ public class SimpleDRAMAdaptor implements TestRunner<HammerAction, HammerResult>
     }
 
     @Override
-    public HammerResult runTest(Word<HammerAction> test) {
+    public HammerOutput runTest(Word<HammerAction> test) {
         // System.out.println("Running test: " + test);
 
         for (HammerAction act: test) {
@@ -88,13 +88,13 @@ public class SimpleDRAMAdaptor implements TestRunner<HammerAction, HammerResult>
 
         boolean flipped = false;
         for (int row : getNeighbours(lastRow)) {
-            flipped |= (generateOutcome(row) == HammerResult.FLIP);
+            flipped |= (generateOutcome(row).getResult().equals(HammerResult.FLIP));
         }
 
         tests.add(test);
 
-        if (flipped) return HammerResult.FLIP;
-        return HammerResult.OK;
+        if (flipped) return new HammerOutput(HammerResult.FLIP);
+        return new HammerOutput(HammerResult.OK);
     }
 
     private List<Integer> getNeighbours(int row) {
@@ -142,9 +142,9 @@ public class SimpleDRAMAdaptor implements TestRunner<HammerAction, HammerResult>
 
         for (int i = 0; i < 100; i++) {
             a.setup();
-            HammerResult output = a.runTest(test);
+            HammerOutput output = a.runTest(test);
             System.out.println(output);
-            if(output == HammerResult.FLIP) numFlips++;
+            if(output.getResult() == HammerResult.FLIP) numFlips++;
             a.cleanup();
         }
         System.out.println("Flip frequency: " + (double) numFlips / 100.0);

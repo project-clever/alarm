@@ -35,7 +35,7 @@ public class Main {
 
         ZCU104Adapter adapter = null;
         try {
-            adapter = new ZCU104Adapter();
+            adapter = new ZCU104Adapter(adapterConfig);
         }
         catch(IOException ex) {
             ex.printStackTrace();

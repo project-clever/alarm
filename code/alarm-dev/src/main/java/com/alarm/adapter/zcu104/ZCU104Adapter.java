@@ -1,8 +1,10 @@
 package com.alarm.adapter.zcu104;
 
+import com.alarm.adapter.RowhammerAdapter;
 import com.alarm.alphabets.HammerAction;
 import com.alarm.alphabets.HammerResult;
 import com.alarm.alphabets.HammerRowsOutput;
+import com.alarm.config.AdapterConfig;
 import com.alarm.tool.TestRunner;
 import com.alarm.utils.TestRunnerException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -22,13 +24,15 @@ import java.util.stream.Collectors;
 //       - Group tests to same row together, adding up their readcounts
 //       - Exploit symmetry? E.g.: [0 2] and [1 0] are the same: achievable by sorting?
 //       - Use cache to extract results for queries are the same up to the two preceding items?
-public class ZCU104Adapter implements TestRunner<HammerAction, HammerRowsOutput> {
+public class ZCU104Adapter extends RowhammerAdapter<HammerRowsOutput> {
     private final PrintWriter out;
     private final BufferedReader in;
 
-    public ZCU104Adapter() throws IOException {
+
+    public ZCU104Adapter(AdapterConfig config) throws IOException {
         // Use this to set up SSH tunnel
         // ssh -f -N -L 4343:127.0.0.1:4343 -p 2222 uhac206@rhulhammer.rhul.io
+        super(config);
         Socket boardConnection = new Socket("127.0.0.1", 4343);
         out = new PrintWriter(boardConnection.getOutputStream(), true);
         in = new BufferedReader(new InputStreamReader(boardConnection.getInputStream()));
@@ -53,7 +57,7 @@ public class ZCU104Adapter implements TestRunner<HammerAction, HammerRowsOutput>
 
         System.out.println(testString);
         out.println(testString);
-        HammerRowsOutput response = null;
+        HammerRowsOutput response;
         try {
             String jsonResponse = in.readLine();
             System.out.println(jsonResponse);
@@ -78,7 +82,7 @@ public class ZCU104Adapter implements TestRunner<HammerAction, HammerRowsOutput>
     }
 
     public static void main(String[] args) throws IOException {
-        ZCU104Adapter a = new ZCU104Adapter();
+        ZCU104Adapter a = new ZCU104Adapter(null);
         try {
             a.runTest(Word.fromSymbols(new HammerAction(1, 100, 1)));
         }

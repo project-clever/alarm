@@ -66,7 +66,7 @@ public class ObservationTree<I, O> {
      * @param input
      * @param output
      * @return the next node
-     * @throws InconsistencyException
+     * @throws CacheInconsistencyException
      */
     public ObservationTree<I, O> addObservation(I input, O output)
             throws CacheInconsistencyException {

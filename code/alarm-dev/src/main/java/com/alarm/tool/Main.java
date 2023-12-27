@@ -13,11 +13,20 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+/**
+ * Main class.
+ */
 public class Main {
     private static LearnerConfig learnerConfig;
     private static AdapterConfig adapterConfig;
 
+    /**
+    * Entry point for the Learner. It reads the configuration from the command line and uses it to initialize the class
+    * 
+    * @param args - The command line arguments
+    */
     public static void main(String[] args) {
+        // Prints usage and exit if no arguments are given.
         if (args.length == 0) {
             printUsage();
             System.exit(-1);
@@ -52,11 +61,20 @@ public class Main {
         }
     }
 
+    /**
+    * Prints the usage of Alarm. This method is called when the user asks for the command line
+    */
     private static void printUsage() {
         System.out.println("Usage: alarm <config_file>");
     }
 
     // Load config parameters from provided yaml file
+
+    /**
+    * Loads the learner and adapter configuration from a given config file.
+    *
+    * @param fileName - the config file path
+    */
     private static void loadConfig(String fileName) throws IOException {
         InputStream is = new FileInputStream(fileName);
         Yaml yaml = new Yaml(new Constructor(Config.class, new LoaderOptions()));

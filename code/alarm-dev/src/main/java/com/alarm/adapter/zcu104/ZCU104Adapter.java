@@ -5,7 +5,6 @@ import com.alarm.alphabets.HammerAction;
 import com.alarm.alphabets.HammerResult;
 import com.alarm.alphabets.HammerRowsOutput;
 import com.alarm.config.AdapterConfig;
-import com.alarm.tool.TestRunner;
 import com.alarm.utils.TestRunnerException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -33,9 +32,10 @@ public class ZCU104Adapter extends RowhammerAdapter<HammerRowsOutput> {
         // Use this to set up SSH tunnel
         // ssh -f -N -L 4343:127.0.0.1:4343 -p 2222 uhac206@rhulhammer.rhul.io
         super(config);
-        Socket boardConnection = new Socket("127.0.0.1", 4343);
-        out = new PrintWriter(boardConnection.getOutputStream(), true);
-        in = new BufferedReader(new InputStreamReader(boardConnection.getInputStream()));
+        try (Socket boardConnection = new Socket("127.0.0.1", 4343)) {
+            out = new PrintWriter(boardConnection.getOutputStream(), true);
+            in = new BufferedReader(new InputStreamReader(boardConnection.getInputStream()));
+        }
     }
 
     @Override
@@ -72,7 +72,8 @@ public class ZCU104Adapter extends RowhammerAdapter<HammerRowsOutput> {
 
     private HammerRowsOutput processJSONResponse(String response) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
-        Map<Integer, Integer> rowFlipsMap = objectMapper.readValue(response, new TypeReference<Map<Integer, Integer>>() {});
+        Map<Integer, Integer> rowFlipsMap = objectMapper.readValue(response, new TypeReference<>() {
+        });
 
         if (!rowFlipsMap.isEmpty()) {
             return new HammerRowsOutput(HammerResult.FLIP).withFlipsLocations(rowFlipsMap.keySet());
@@ -84,7 +85,8 @@ public class ZCU104Adapter extends RowhammerAdapter<HammerRowsOutput> {
     public static void main(String[] args) throws IOException {
         ZCU104Adapter a = new ZCU104Adapter(null);
         try {
-            a.runTest(Word.fromSymbols(new HammerAction(1, 100, 1)));
+            a.runTest(Word.fromSymbols(new HammerAction(0, 50000, 1),
+                    new HammerAction(1, 50000, 1)));
         }
         catch(TestRunnerException e){e.printStackTrace();}
     }

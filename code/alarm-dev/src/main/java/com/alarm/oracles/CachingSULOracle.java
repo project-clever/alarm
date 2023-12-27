@@ -1,5 +1,6 @@
 package com.alarm.oracles;
 
+import com.alarm.alphabets.TerminatingSymbol;
 import de.learnlib.api.oracle.MembershipOracle;
 import de.learnlib.api.oracle.MembershipOracle.MealyMembershipOracle;
 import de.learnlib.api.query.Query;
@@ -30,11 +31,29 @@ public class CachingSULOracle<I, O extends TerminatingSymbol> implements MealyMe
 
     private MembershipOracle<I, Word<O>> sulOracle;
 
+    /**
+     * Creates SUL oracle with cache implemented as an {@link ObservationTree} object
+     *
+     * @param sulOracle the underlying SUL oracle
+     * @param cache the observation tree cache
+     */
     public CachingSULOracle(MembershipOracle<I, Word<O>> sulOracle, ObservationTree<I, O> cache) {
         this.root = cache;
         this.sulOracle = sulOracle;
     }
 
+    /**
+     * Processes a collection of queries using the cache when possible.
+     *
+     * The cache is used as follows:
+     * <ul>
+     *
+     * </ul>
+     *
+     * @param queries
+     *         the queries to process
+     *
+     */
     @Override
     public void processQueries(Collection<? extends Query<I, Word<O>>> queries) {
         for (Query<I, Word<O>> q : queries) {
@@ -64,9 +83,6 @@ public class CachingSULOracle<I, O extends TerminatingSymbol> implements MealyMe
     }
 
     @Nullable private Word<O> answerFromCache(Word<I> input) {
-//        if (terminatingOutputs.isEmpty())
-//            return root.answerQuery(input);
-//        else {
         Word<O> output = root.answerQuery(input, true);
         if (output.length() < input.length()) {
             if (output.isEmpty()) {

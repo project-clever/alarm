@@ -1,7 +1,5 @@
 package com.alarm.alphabets;
 
-import com.alarm.oracles.TerminatingSymbol;
-
 public class HammerOutput implements TerminatingSymbol {
     protected final HammerResult result;
 

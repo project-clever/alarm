@@ -3,7 +3,7 @@ package com.alarm.adapter;
 import com.alarm.alphabets.HammerAction;
 import com.alarm.alphabets.HammerOutput;
 import com.alarm.config.AdapterConfig;
-import com.alarm.tool.TestRunner;
+import com.alarm.oracles.TestRunner;
 
 public abstract class RowhammerAdapter<O extends HammerOutput> implements TestRunner<HammerAction,O> {
     protected AdapterConfig config;

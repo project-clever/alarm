@@ -1,6 +1,5 @@
 package com.alarm.oracles;
 
-import com.alarm.tool.TestRunner;
 import com.alarm.utils.TestRunnerException;
 import de.learnlib.api.SUL;
 import net.automatalib.words.Word;
@@ -11,13 +10,13 @@ import net.automatalib.words.Word;
  * @author Matteo Sammartino
  */
 public class TestRunnerSUL<I,O> implements SUL<I, O> {
-    private TestRunner<I,O> testRunner;
+    private final TestRunner<I,O> testRunner;
     private Word<I> testPrefix;
 
 
     /**
      * Intialises a TestRunnerSul with the given TestRunner
-     * @param testRunner Object of type {@link alarm.com.tool.TestRunner} used to run tests
+     * @param testRunner Object of type {@link TestRunner} used to run tests
      */
     public TestRunnerSUL(TestRunner<I,O> testRunner) {
         this.testRunner = testRunner;
@@ -52,9 +51,8 @@ public class TestRunnerSUL<I,O> implements SUL<I, O> {
     /**
      * Runs a test consisting of the current test prefix and in.
      * This test is used as prefix for next step.
-     * @param in
-     *         input to the SUL
      *
+     * @param in input to the SUL
      * @return test result
      */
     @Override
